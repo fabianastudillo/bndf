@@ -1,0 +1,55 @@
+#Habilitar el modo promiscuo
+sudo ip link set eth1 promisc on
+
+# https://linuxways.net/ubuntu/how-to-install-docker-compose-on-ubuntu-20-04/
+# Desinstalar version actual
+
+apt remove docker-compose
+
+# Instalar la version 1.27.4
+
+sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+# Reiniciar una instancia de docker
+https://docs.tibco.com/pub/mash-local/4.1.0/doc/html/docker/GUID-BD850566-5B79-4915-987E-430FC38DAAE4.html
+
+
+# Limpiar los logs
+sudo truncate -s 0 `docker inspect --format='{{.LogPath}}' <contenedor>`
+
+# Dar permisos a un volumen
+docker run --rm -it --net=host -e PUID=$(id -u) -e PGID=$(id -g) -v $(pwd)/etc:/etc/suricata --cap-add=net_admin --cap-add=sys_nice -v $(pwd)/logs:/var/log/suricata suricatav1 -i wlo1
+
+# Capturar solo tráfico DNS
+tcpdump -i ens192 -n|egrep "\.53:"
+tcpdump -i ens192 -n tcp port 53
+
+# Ingresar al servidor de botnet detection de CEDIA
+ssh -D 9000 -C root@201.159.222.218
+
+# Recompilar un contenedor
+docker-compose build --no-cache nginx 
+
+
+TODOs
+-- Comprobar si se necesita ejecutar la seccion A.2.2.3 de la tesis de Vicente
+-- Agregar GeoIP, ver la sección A.2.3.2
+-- Hay que mencionar que el archivo suricata.yaml fue modificado para capturar solo tráfico DNS
+
+
+Preguntas para Vicente
+
+¿Qué proceso siguió para descargar el GeoIP?
+	Hay que crear una cuenta
+
+¿Cambio algún filtro de suricata?
+	Esto está en suricata.yaml --> líneas eliminadas usando #BND-UC#
+	Ya está
+	
+
+En la línea 45 de fingerprint_generator hay que recuperar todos los logstash* o solo de dns
+	Solo dns
+
+
