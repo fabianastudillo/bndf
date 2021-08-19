@@ -94,7 +94,7 @@ services:
       - suricata-logs:/var/log/suricata:ro
       - ./containers-data/logstash/conf.d/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
       - ./containers-data/logstash/templates/elasticsearch7-template.json:/usr/share/logstash/config/elasticsearch7-template.json
-      - ./containers-data/GeoIP/:/usr/share/GeoIP/
+#      - ./containers-data/GeoIP/GeoLite2-City.mmdb:/usr/share/GeoIP/GeoLite2-City.mmdb
     networks:
       network:
           
@@ -108,7 +108,8 @@ services:
 #        condition: service_healthy
     environment:
       - TZ=America/Guayaquil
-      - SURICATA_OPTIONS=${INTERFACES} -vvv --pcap-file-delete --set sensor-name=suricata
+      - SURICATA_OPTIONS=${INTERFACES} -vvv --set sensor-name=suricata
+#      - SURICATA_OPTIONS=${INTERFACES} -vvv --pcap-file-delete --set sensor-name=suricata
 #      - PUID=${UID}
 #      - PGID=${GID}
     cap_add:
