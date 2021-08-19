@@ -4,7 +4,7 @@ set -e
 #eval `ssh-agent -s`
 #ssh-add /root/cedia-dnsmirror
 #ssh -D 9000 -C -N -f root@201.159.222.218
-TZ='America/Guayaquil'; export TZ
+#TZ='America/Guayaquil'; export TZ
 
 d=`date '+%Y.%m.%d'`
 hour=$((`date '+%H'`-1)) 

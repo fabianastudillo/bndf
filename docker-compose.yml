@@ -41,7 +41,7 @@ services:
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - TZ=America/Guayaquil
+#      - TZ=America/Guayaquil
     volumes:
       - ${ELASTIC_DATAPATH:-elastic-data}:/usr/share/elasticsearch/data
 #      - ./containers-data/GeoIP/GeoLite2-City.mmdb:/usr/share/GeoIP/GeoLite2-City.mmdb
@@ -88,8 +88,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    environment: 
-      - TZ=America/Guayaquil
+#    environment: 
+#      - TZ=America/Guayaquil
     volumes:
       - suricata-logs:/var/log/suricata:ro
       - ./containers-data/logstash/conf.d/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
@@ -107,7 +107,7 @@ services:
 #      scirius:
 #        condition: service_healthy
     environment:
-      - TZ=America/Guayaquil
+#      - TZ=America/Guayaquil
       - SURICATA_OPTIONS=${INTERFACES} -vvv --set sensor-name=suricata
 #      - SURICATA_OPTIONS=${INTERFACES} -vvv --pcap-file-delete --set sensor-name=suricata
 #      - PUID=${UID}
@@ -131,8 +131,8 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
-    environment: 
-      - TZ=America/Guayaquil
+#    environment: 
+#      - TZ=America/Guayaquil
     networks: 
       network:
 #    healthcheck:

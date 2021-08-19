@@ -209,7 +209,7 @@ function install_docker_compose(){
   sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
   sudo chmod +x /usr/local/bin/docker-compose && \
   echo "${green}+${reset} docker-compose installation succeeded" || \
-  ( echo "${red}-${reset} docker-compose installation failed" && exit )
+  ( echo "${red}-${reset} docker-compose finstallation failed" && exit )
 }
 function Version(){
   # $1-a $2-op $3-$b
@@ -324,7 +324,7 @@ function getInterfaces {
   for interface in $(ls /sys/class/net); do echo "${intfnum}: ${interface}"; ((intfnum++)) ; done
   
   echo -e "Please type in interface or space delimited interfaces below and hit \"Enter\"."
-  echo -e "Choose the interface(s) that is (are) one the network(s) you want to monitor"
+  echo -e "Choose the interface that is the mirroring interface you want to monitor"
   echo -e "Example: eth1"
   echo -e "OR"
   echo -e "Example: eth1 eth2 eth3"
