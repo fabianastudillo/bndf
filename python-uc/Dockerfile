@@ -20,6 +20,7 @@ RUN chmod 0644 /etc/cron.d/crontab
 
 RUN touch /var/log/cron.log
 
+RUN mkdir /var/log/bndf
 RUN apt-get update
 RUN apt-get install -y cron
 RUN python -m pip install requests==2.26.0 elasticsearch==7.14.0 pandas==1.3.2 pysocks==1.7.1

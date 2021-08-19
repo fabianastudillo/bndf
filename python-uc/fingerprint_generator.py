@@ -297,14 +297,14 @@ def main():
             df=pd.DataFrame(data,columns=['index','@timestamp','ip','P1','P2','P3','P4','P5',
                                             'P6','P7','P8','P9','P10',
                                             'P11','P12','P13','P14','P15'])
-            path =  'fingerprints-' + args.date + '.csv'
+            path =  '/var/log/bndf/fingerprints-' + args.date + '.csv'
             df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
                 
         matriz_num_host.append(hosts_number)
                 
     M_N_H=np.array(matriz_num_host)
     M_N_H=M_N_H.transpose()
-    np.savetxt("num_host" + args.date + ".csv",M_N_H,fmt="%d",delimiter=",")
+    np.savetxt("/var/log/bndf/num_host" + args.date + ".csv",M_N_H,fmt="%d",delimiter=",")
 
     # while True:
     #     i=0
