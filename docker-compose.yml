@@ -1,5 +1,5 @@
-# Copyright(C) 2021, Stamus Networks
-# Written by Raphaël Brogat <rbrogat@stamus-networks.com>
+# Copyright(C) 2021, Botnet Detection Framework
+# Written by Fabian Astudillo Salinas <fabian.astudillos@ucuenca.edu.ec>
 #
 # This file comes with ABSOLUTELY NO WARRANTY!
 #
@@ -23,8 +23,6 @@ networks:
 volumes:
   elastic-data:  #for ES data persistency
   suricata-rules: #for suricata rules transfer between scirius and suricata and for persistency
-  # scirius-data: #for scirius data persistency
-  # scirius-static: #statics files to be served by nginx
   suricata-run: #path where the suricata socket resides
   suricata-logs:
 
@@ -53,6 +51,8 @@ services:
         hard: -1
     networks:
       network:
+    ports: 
+      - 9200:9200
       
   kibana:
     container_name: kibana
