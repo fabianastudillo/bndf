@@ -90,11 +90,14 @@ def main():
     dns_indices=[]
     print("- Loading the indices from elasticsearh")
     print("- The loaded indices are ", end = '')
-    for index in es.indices.get('logstash-dns-' + args.date):
-        print(index, end = ',')
-        dns_indices.append(index)
-    print("")
-
+    try:
+        for index in es.indices.get('logstash-dns-' + args.date):
+            print(index, end = ',')
+            dns_indices.append(index)
+        print("")
+    except Exception as ex:
+        print ("- Error:", ex)
+        exit
     # try:
     #     res=es.indices.delete(index='fingerprints')
     # except:
@@ -271,7 +274,7 @@ def main():
                 P15.append(r["aggregations"]["Filtro_type"]["Filtro_ip"]["Filtro_type"]["doc_count"])
             P15=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P2,P15)]
             
-            print(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P15)
+            #print(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P15)
             """
             datos_finales=[["@timestamp",time,
                             "ip",ip,"p1",p1,"p2",p2,"p3",p3,"p4",p4,"p5",p5,
@@ -290,11 +293,11 @@ def main():
             index_array=[j for j in range(indexs,indexs+len(P1))]
             indexs=indexs+len(P1)
                 
-            data={"index":index_array,"@timestamp":P1_1,"ip":ips,'P1':P1,'P2':P2,'P3':P3,'P4':P4,'P5':P5,
+            data={"@timestamp":P1_1,"ip":ips,'P1':P1,'P2':P2,'P3':P3,'P4':P4,'P5':P5,
                     'P6':P6,'P7':P7,'P8':P8,'P9':P9,'P10':P10,
                     'P11':P11,'P12':P12,'P13':P13,'P14':P14,'P15':P15}
             
-            df=pd.DataFrame(data,columns=['index','@timestamp','ip','P1','P2','P3','P4','P5',
+            df=pd.DataFrame(data,columns=['@timestamp','ip','P1','P2','P3','P4','P5',
                                             'P6','P7','P8','P9','P10',
                                             'P11','P12','P13','P14','P15'])
             path =  '/var/log/bndf/fingerprints-' + args.date + '.csv'
