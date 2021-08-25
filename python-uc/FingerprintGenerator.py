@@ -18,8 +18,6 @@ from statistics import mean
 import pandas as pd
 import datetime
 import os
-import socket
-#import socks
 import queries
 import numpy as np
 import re
@@ -31,7 +29,7 @@ import logging
 class FingerprintGenerator:
     """This class generates the fingerprints"""
 
-    def __init__(self, timestep, ip_elasticsearch, datestep, fn_whitelist):
+    def __init__(self, ip_elasticsearch, datestep, fn_whitelist):
         self.__datestep=datestep
         self.__ip_elasticsearch=ip_elasticsearch
         self.__white_list=[ ]
@@ -55,7 +53,7 @@ class FingerprintGenerator:
         logging.info("- Loading the indices from elasticsearh")
         logging.info("- The loaded indices are ", end = '')
         try:
-            for index in self.__elasticsearch.indices.get('logstash-dns-' + timestep):
+            for index in self.__elasticsearch.indices.get('logstash-dns-' + self.__datestep.strftime("%Y-%m-%d")):
                 logging.info(index, end = ',')
                 self.__dns_indices.append(index)
             logging.info("")
