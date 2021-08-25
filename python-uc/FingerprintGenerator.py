@@ -11,6 +11,7 @@ to process.
 @author: Fabian Astudillo-Salinas <fabian.astudillos@ucuenca.edu.ec>
 """
 
+from pathlib import Path
 import os.path
 import requests
 from elasticsearch import Elasticsearch
@@ -30,9 +31,13 @@ class FingerprintGenerator:
     """This class generates the fingerprints"""
 
     def __init__(self, ip_elasticsearch, datestep, fn_whitelist):
-        self.__datestep=datestep
         self.__ip_elasticsearch=ip_elasticsearch
         self.__white_list=[ ]
+
+        self.__output_dir = Path('/var/log/bndf/')
+
+        self.__output_dir.mkdir(parents=True, exist_ok=True)
+
         logging.info("Fingerprint Generator")
         if (fn_whitelist and os.path.exists(fn_whitelist)):
             with open(fn_whitelist) as f:
@@ -48,22 +53,12 @@ class FingerprintGenerator:
         except Exception as ex:
             raise ex
 
-        #list existing DNS indexes
-        self.__dns_indices=[]
-        logging.info("- Loading the indices from elasticsearh")
-        logging.info("- The loaded indices are ", end = '')
-        try:
-            for index in self.__elasticsearch.indices.get('logstash-dns-' + self.__datestep.strftime("%Y-%m-%d")):
-                logging.info(index, end = ',')
-                self.__dns_indices.append(index)
-            logging.info("")
-        except Exception as ex:
-            raise ex
+        self.SetDatestep(datestep)
 
-    def ConvertTime(time):
+    def ConvertTime(self,time):
         return(time.strftime("%Y-%m-%dT%H:%M:%SZ"))
     
-    def Convert(a):
+    def Convert(self,a):
         it = iter(a)
         res_dct = dict(zip(it, it))
         return res_dct
@@ -75,6 +70,17 @@ class FingerprintGenerator:
     
     def SetDatestep(self, datestep):
         self.__datestep=datestep
+        #list existing DNS indexes
+        self.__dns_indices=[]
+        logging.info("- Loading the indices from elasticsearh")
+        logging.info("- The loaded indices are ", end = '')
+        try:
+            for index in self.__elasticsearch.indices.get('logstash-dns-' + self.__datestep.strftime("%Y.%m.%d")):
+                logging.info(index, end = ',')
+                self.__dns_indices.append(index)
+            logging.info("")
+        except Exception as ex:
+            raise ex
 
     def Generate(self):
 
