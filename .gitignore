@@ -1,2 +1,4 @@
 .env
 build.log
+python-uc/cedia-dnsmirror
+python-uc/tunnel.sh

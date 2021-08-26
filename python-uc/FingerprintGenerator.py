@@ -18,6 +18,7 @@ from elasticsearch import Elasticsearch
 from statistics import mean
 import pandas as pd
 import datetime
+import dateutil.parser
 import os
 import queries
 import numpy as np
@@ -43,6 +44,7 @@ class FingerprintGenerator:
             with open(fn_whitelist) as f:
                 print ("Open white list")
                 for line in f:
+                    line = line.strip()
                     self.__white_list.append(line)
         else:
             raise Exception("Whitelist file not found with the name " + fn_whitelist)
@@ -70,6 +72,7 @@ class FingerprintGenerator:
     
     def SetDatestep(self, datestep):
         self.__datestep=datestep
+        print(type(self.__datestep))
         #list existing DNS indexes
         self.__dns_indices=[]
         logging.info("- Loading the indices from elasticsearh")
@@ -140,8 +143,10 @@ class FingerprintGenerator:
             query=queries.statement_p1_1(gte,lte)
             r = requests.get(uri,headers=HEADERS, data=query).json()
             num_host=r["aggregations"]["Filtro_type"]["num_hosts"]["value"]
+            #print(r)
             hosts_number.append(num_host)
             
+            #print("num_host= " + str(num_host))
             if num_host!=0:
                 #Number of DNS requests per hour for each host
                 #Considering that each host has made a minimum of 100 requests
@@ -151,7 +156,9 @@ class FingerprintGenerator:
                 ips=[]
 
                 for item in r["aggregations"]["Filtro_type"]["sacar_ip"]["buckets"]:
+                    #print(self.__white_list)
                     if (item['key'] in self.__white_list) == False:
+                        #print(item['key'])
                         ips.append(item['key'])
                         P1.append(item['doc_count'])
                     
@@ -307,9 +314,7 @@ def main():
 
     # Add the arguments to the parser
     parser.add_argument("-d", "--date", dest="date", required=False,
-    help="The date to be processed in format year.month.day example '2021.08.18'")
-    parser.add_argument("-o", "--hour", dest="hour", required=False,
-    help="The hour to be processed")
+    help="The date to be processed in ISO format example '2021-08-23T00:00:00Z'")
     parser.add_argument("-w", "--whitelist", dest="whitelist", required=False,
     help="The whitelist file")
     parser.add_argument("-i", "--ip_es", dest="ip_es", required=True,
@@ -324,8 +329,8 @@ def main():
     # socket.socket = socks.socksocket
     ip_es = args.ip_es
     print("- The elastic search IP is " + ip_es)
-
-    fgp=FingerprintGenerator(args.date, args.ip_es, args.whitelist)
+    datefpg = date_from=dateutil.parser.isoparse(args.date);
+    fgp=FingerprintGenerator(datefpg, args.ip_es, args.whitelist)
 
     if args.list_all_indices:
         fgp.GetIndices()

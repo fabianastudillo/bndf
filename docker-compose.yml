@@ -141,13 +141,14 @@ services:
 #      timeout: 5s
 #      retries: 3
 #      start_period: 30s
+
     volumes:
       - ./python-uc/queries.py:/queries.py
       - ./python-uc/FingerprintGenerator.py:/FingerprintGenerator.py
       - ./python-uc/entrypoint.py:/entrypoint.py
       - ./python-uc/fingerprint_manualgenerator.py:/fingerprint_manualgenerator.py
 #      - ./python-uc/fingerprint_generator.service:/etc/systemd/system/fingerprint_generator.service
-      - ./python-uc/new_entrypoint.sh:/new_entrypoint.sh
+      - ./python-uc/tunnel.sh:/tunnel.sh
       - ./python-uc/cedia-dnsmirror:/root/cedia-dnsmirror
       - ./python-uc/whitelist.txt:/root/whitelist.txt
 
