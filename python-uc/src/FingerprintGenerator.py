@@ -72,7 +72,6 @@ class FingerprintGenerator:
     
     def SetDatestep(self, datestep):
         self.__datestep=datestep
-        print(type(self.__datestep))
         #list existing DNS indexes
         self.__dns_indices=[]
         logging.info("- Loading the indices from elasticsearh")
