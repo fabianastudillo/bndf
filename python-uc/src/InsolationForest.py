@@ -24,8 +24,8 @@ to_model_columns=metrics_df.columns[3:18]
 #clf=IsolationForest(n_estimators=100, max_samples='auto', contamination=float(.12),
                     #max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
                     #verbose=0)
-anomalias=[]
-estimador=[]                
+anomalies=[]
+estimator=[]                
 for i in range(5,40): 
     n_estimator=i*10
     clf=IsolationForest(n_estimators=n_estimator, max_samples='auto', contamination='auto',
@@ -39,14 +39,14 @@ for i in range(5,40):
     #print(outlier_index)
     #Find the number of anomalies and normal points here points classified -1 are anomalous
     a=metrics_df['anomaly'].value_counts()
-    estimador.append(n_estimator)
-    anomalias.append(a.values[1])
+    estimator.append(n_estimator)
+    anomalies.append(a.values[1])
     print(n_estimator)
     print(metrics_df['anomaly'].value_counts())
 
 plt.figure()
-plt.title("Número de Anomalías Encontradas")
-plt.xlabel("Numero de Árboles")
-plt.ylabel("Cantidad de Anomalías")
-plt.plot(estimador,anomalias)
+plt.title("Number of Anomalies Found")
+plt.xlabel("Number of Trees")
+plt.ylabel("Number of Anomalies")
+plt.plot(estimator,anomalies)
 plt.show()
