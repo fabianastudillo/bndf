@@ -15,8 +15,7 @@ def main():
     today = datetime.now().replace(minute=0, second=0, microsecond=0)
     today = today - dt.timedelta(hours=1)
     try:
-        #fpg = FingerprintGenerator("elasticsearch", date_from, "/root/whitelist.txt")
-        fpg = FingerprintGenerator("172.17.1.73", today, "/root/whitelist.txt")
+        fpg = FingerprintGenerator("elasticsearch", today, "/root/whitelist.txt")
         fpg.Generate()
     except Exception as ex:
         logging.info(str(ex))
