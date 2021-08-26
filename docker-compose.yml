@@ -25,6 +25,7 @@ volumes:
   suricata-rules: #for suricata rules transfer between scirius and suricata and for persistency
   suricata-run: #path where the suricata socket resides
   suricata-logs:
+  python-data: #pathe where the bndf output resides
 
 services:
   
@@ -143,11 +144,12 @@ services:
 #      start_period: 30s
 
     volumes:
-      - ./python-uc/queries.py:/queries.py
-      - ./python-uc/FingerprintGenerator.py:/FingerprintGenerator.py
-      - ./python-uc/entrypoint.py:/entrypoint.py
-      - ./python-uc/fingerprint_manualgenerator.py:/fingerprint_manualgenerator.py
-#      - ./python-uc/fingerprint_generator.service:/etc/systemd/system/fingerprint_generator.service
+      - python-data:/var/log/bndf
+      - ./python-uc/src:/bndf
+      #- ./python-uc/queries.py:/queries.py
+      #- ./python-uc/FingerprintGenerator.py:/FingerprintGenerator.py
+      #- ./python-uc/entrypoint.py:/entrypoint.py
+      #- ./python-uc/fingerprint_manualgenerator.py:/fingerprint_manualgenerator.py
       - ./python-uc/tunnel.sh:/tunnel.sh
       - ./python-uc/cedia-dnsmirror:/root/cedia-dnsmirror
       - ./python-uc/whitelist.txt:/root/whitelist.txt

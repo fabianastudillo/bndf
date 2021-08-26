@@ -9,8 +9,8 @@ import logging
 
 def main():
 
-    socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
-    socket.socket = socks.socksocket
+    #socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
+    #socket.socket = socks.socksocket
 
     #date_from=date.fromisoformat('2021-08-23T00:00:00.000000Z')
     date_from=dateutil.parser.isoparse('2021-08-23T00:00:00Z')

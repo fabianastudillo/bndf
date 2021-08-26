@@ -27,6 +27,7 @@ RUN python -m pip install requests==2.26.0 elasticsearch==7.14.0 pandas==1.3.2 p
 #RUN chmod +x fingerprint_generator.py
 #CMD [ "python", "./fingerprint_generator.py" ]
 #RUN (crontab -l -u root; echo "*/2 * * * * /new_entrypoint.sh") | crontab
+RUN mkdir /bndf
 CMD cron && tail -f /var/log/cron.log
 
 #ENTRYPOINT ["/bin/sh", "-c", "/bin/bash"]
