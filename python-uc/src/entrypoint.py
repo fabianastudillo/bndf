@@ -2,9 +2,10 @@
 import datetime as dt
 from datetime import datetime
 from FingerprintGenerator import FingerprintGenerator
-import socks
+#import socks
 import socket
 import logging
+import os
 
 def main():
 
@@ -14,8 +15,13 @@ def main():
     #today = datetime.today()
     today = datetime.now().replace(minute=0, second=0, microsecond=0)
     today = today - dt.timedelta(hours=1)
+
+    IP_ES = os.getenv('IP_ES')
+    if not IP_ES:
+        IP_ES="elasticsearch"
+
     try:
-        fpg = FingerprintGenerator("elasticsearch", today, "/root/whitelist.txt")
+        fpg = FingerprintGenerator(IP_ES, today, "/root/whitelist.txt")
         fpg.Generate()
     except Exception as ex:
         logging.info(str(ex))

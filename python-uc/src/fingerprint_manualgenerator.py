@@ -6,6 +6,7 @@ from FingerprintGenerator import FingerprintGenerator
 import socks
 import socket
 import logging
+import os
 
 def main():
 
@@ -18,9 +19,12 @@ def main():
     date_upto=dateutil.parser.isoparse("2021-08-25T16:00:00Z")
     date_offset = date_from
     
-    #fpg = FingerprintGenerator("elasticsearch", date_from, "/root/whitelist.txt")
+    IP_ES = os.getenv('IP_ES')
+    if not IP_ES:
+        IP="elasticsearch"
+
     try:
-        fpg = FingerprintGenerator("172.17.1.73", date_from, "/root/whitelist.txt")
+        fpg = FingerprintGenerator(IP_ES, date_from, "/root/whitelist.txt")
     except Exception as ex:
         logging.info(str(ex))
 
