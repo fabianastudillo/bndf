@@ -603,6 +603,9 @@ af-packet:
     # In some fragmentation cases, the hash can not be computed. If "defrag" is set
     # to yes, the kernel will do the needed defragmentation before sending the packets.
     defrag: yes
+    ebpf-filter-file:  /etc/suricata/capture-filter.bpf
+    use-mmap: yes
+    ring-size: 200000
     # To use the ring feature of AF_PACKET, set 'use-mmap' to yes
     #use-mmap: yes
     # Lock memory map to avoid it being swapped. Be careful that over

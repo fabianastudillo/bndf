@@ -1,9 +1,9 @@
-FROM jasonish/suricata:master-amd64
+#FROM jasonish/suricata:master-amd64
 
-COPY /capture-filter.bpf /etc/suricata/capture-filter.bpf
+#COPY /capture-filter.bpf /etc/suricata/capture-filter.bpf
 
-VOLUME /var/log/suricata
-VOLUME /var/lib/suricata
-VOLUME /etc/suricata
+#VOLUME /var/log/suricata
+#VOLUME /var/lib/suricata
+#VOLUME /etc/suricata
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+#ENTRYPOINT ["/docker-entrypoint.sh"]
