@@ -111,7 +111,7 @@ services:
 #        condition: service_healthy
     environment:
 #      - TZ=America/Guayaquil
-      - SURICATA_OPTIONS=${INTERFACES} -F "/root/capture-filter.bpf" -vvv --set sensor-name=suricata
+      - SURICATA_OPTIONS=${INTERFACES} -F "/etc/suricata/capture-filter.bpf" -vvv --set sensor-name=suricata
 #      - SURICATA_OPTIONS=${INTERFACES} -vvv --pcap-file-delete --set sensor-name=suricata
 #      - PUID=${UID}
 #      - PGID=${GID}
