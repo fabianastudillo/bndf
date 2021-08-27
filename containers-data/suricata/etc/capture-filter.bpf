@@ -1,14 +1,11 @@
-# This file contains a list of IPs that are not considered to the research
 not host 201.159.221.68
 not host 201.159.221.73
 not host 201.159.221.74
 not host 201.159.221.78
 not host 201.159.221.80
-#not host 201.159.221.81
 not host 2800:0068:0000:bebe:0000:0000:0000:0004
 not host 2800:0068:0000:caff:80f2:a0e4:f282:178f
 not host 2800:0068:000e:0000:0000:0000:0000:0222
 not host 2800:0130:0001:0050:0209:6bff:fef1:c314
 not host 2800:0130:0001:0050:0250:56ff:febd:5fd5
 not host 2801:0016:4800:0002:0000:0000:0102:0039
-#not host 2801:0016:4800:0002:0000:0000:0102:0040
