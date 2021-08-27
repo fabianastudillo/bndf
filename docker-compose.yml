@@ -100,8 +100,8 @@ services:
       network:
           
   suricata:
-    build:
-      context: suricata/
+#    build:
+#      context: suricata/
     container_name: suricata
     image: jasonish/suricata:master-amd64
     entrypoint: /etc/suricata/new_entrypoint.sh
