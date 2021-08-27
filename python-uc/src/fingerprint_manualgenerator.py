@@ -3,7 +3,7 @@
 import datetime
 import dateutil.parser
 from FingerprintGenerator import FingerprintGenerator
-import socks
+#import socks
 import socket
 import logging
 import os
