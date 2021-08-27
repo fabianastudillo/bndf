@@ -1,4 +1,4 @@
-FFROM centos:8 AS builder
+FROM centos:8 AS builder
 
 RUN \
         dnf -y update && \
