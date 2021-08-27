@@ -117,6 +117,8 @@ services:
       - NET_ADMIN
       - SYS_NICE
     network_mode: host
+    copy:
+      - ./containers-data/suricata/etc/capture-filter.bpf:/etc/suricata/capture-filter.bpf
     volumes:
        - suricata-logs:/var/log/suricata
        - suricata-rules:/etc/suricata/rules
