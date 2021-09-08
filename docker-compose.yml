@@ -22,9 +22,9 @@ networks:
 
 volumes:
   elastic-data:  #for ES data persistency
-  suricata-rules: #for suricata rules transfer between scirius and suricata and for persistency
-  suricata-run: #path where the suricata socket resides
-  suricata-logs:
+  #suricata-rules: #for suricata rules transfer between scirius and suricata and for persistency
+  #suricata-run: #path where the suricata socket resides
+  bndf-logs:
   python-data: #pathe where the bndf output resides
 
 services:
@@ -92,40 +92,41 @@ services:
 #    environment: 
 #      - TZ=America/Guayaquil
     volumes:
-      - suricata-logs:/var/log/suricata:ro
+#      - suricata-logs:/var/log/suricata:ro
       - ./containers-data/logstash/conf.d/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
       - ./containers-data/logstash/templates/elasticsearch7-template.json:/usr/share/logstash/config/elasticsearch7-template.json
 #      - ./containers-data/GeoIP/GeoLite2-City.mmdb:/usr/share/GeoIP/GeoLite2-City.mmdb
     ports:
-      10000:10000
+      - 10000:10000
     networks:
       network:
-          
-  suricata:
-#    build:
-#      context: suricata/
-    container_name: suricata
-    image: jasonish/suricata:master-amd64
-    entrypoint: /etc/suricata/new_entrypoint.sh
-    restart: unless-stopped
-#    depends_on:
-#      scirius:
-#        condition: service_healthy
-    environment:
-#      - TZ=America/Guayaquil
-      - SURICATA_OPTIONS=${INTERFACES} -vvv --set sensor-name=suricata
-#      - SURICATA_OPTIONS=${INTERFACES} -vvv --pcap-file-delete --set sensor-name=suricata
-#      - PUID=${UID}
-#      - PGID=${GID}
-    cap_add:
-      - NET_ADMIN
-      - SYS_NICE
-    network_mode: host
-    volumes:
-       - suricata-logs:/var/log/suricata
-       - suricata-rules:/etc/suricata/rules
-       - suricata-run:/var/run/suricata/
-       - ./containers-data/suricata/etc:/etc/suricata
+
+# Removing to use graylog input         
+#  suricata:
+##    build:
+##      context: suricata/
+#    container_name: suricata
+#    image: jasonish/suricata:master-amd64
+#    entrypoint: /etc/suricata/new_entrypoint.sh
+#    restart: unless-stopped
+##    depends_on:
+##      scirius:
+##        condition: service_healthy
+#    environment:
+##      - TZ=America/Guayaquil
+#      - SURICATA_OPTIONS=${INTERFACES} -vvv --set sensor-name=suricata
+##      - SURICATA_OPTIONS=${INTERFACES} -vvv --pcap-file-delete --set sensor-name=suricata
+##      - PUID=${UID}
+##      - PGID=${GID}
+#    cap_add:
+#      - NET_ADMIN
+#      - SYS_NICE
+#    network_mode: host
+#    volumes:
+#       - suricata-logs:/var/log/suricata
+#       - suricata-rules:/etc/suricata/rules
+#       - suricata-run:/var/run/suricata/
+#       - ./containers-data/suricata/etc:/etc/suricata
     
   python:
     build:
