@@ -11,3 +11,5 @@ USER 0
 RUN yum install -y tcpdump
 
 USER 1000
+
+EXPOSE 10000
