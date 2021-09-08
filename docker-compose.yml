@@ -96,8 +96,9 @@ services:
       - ./containers-data/logstash/conf.d/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
       - ./containers-data/logstash/templates/elasticsearch7-template.json:/usr/share/logstash/config/elasticsearch7-template.json
 #      - ./containers-data/GeoIP/GeoLite2-City.mmdb:/usr/share/GeoIP/GeoLite2-City.mmdb
-    ports:
-      - 10000:10000
+    network_mode: host
+#    ports:
+#      - 10000:10000
     networks:
       network:
 
