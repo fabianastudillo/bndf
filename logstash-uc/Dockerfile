@@ -9,6 +9,8 @@ RUN /usr/share/logstash/bin/logstash-plugin install logstash-input-gelf
 
 USER 0
 RUN yum install -y tcpdump
+RUN touch /var/log/logs.graylog
+RUN chown logstash:root /var/log/logs.graylog
 
 USER 1000
 
