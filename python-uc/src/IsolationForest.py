@@ -10,6 +10,7 @@ import warnings
 import glob, os
 from sklearn.ensemble import IsolationForest
 import matplotlib.pyplot as plt
+import logging
 
 warnings.filterwarnings('ignore')
 #print(os.listdir("../Tesis"))
@@ -19,7 +20,7 @@ df_list = []
 for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
     df_list.append(pd.read_csv(filename))
     full_df = pd.concat(df_list)
-    full_df.to_csv('full.csv', index=False)
+    full_df.to_csv('/var/log/bndf/full.csv', index=False)
 
 df=pd.read_csv("/var/log/bndf/full.csv")
 df.head()
@@ -48,12 +49,15 @@ for i in range(5,40):
     a=metrics_df['anomaly'].value_counts()
     estimator.append(n_estimator)
     anomalies.append(a.values[1])
-    print(n_estimator)
-    print(metrics_df['anomaly'].value_counts())
+    logging.info("IsolationForest: " + n_estimator)
+    logging.info("IsolationForest: " + metrics_df['anomaly'].value_counts())
+#    print(n_estimator)
+#    print(metrics_df['anomaly'].value_counts())
 
-plt.figure()
+f=plt.figure()
 plt.title("Number of Anomalies Found")
 plt.xlabel("Number of Trees")
 plt.ylabel("Number of Anomalies")
 plt.plot(estimator,anomalies)
 plt.show()
+f.savefig("full.pdf", bbox_inches='tight')
