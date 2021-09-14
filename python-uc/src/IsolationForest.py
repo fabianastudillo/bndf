@@ -14,7 +14,14 @@ import matplotlib.pyplot as plt
 warnings.filterwarnings('ignore')
 #print(os.listdir("../Tesis"))
 
-df=pd.read_csv("../Tesis/fingerprints.csv")
+df_list = []
+
+for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
+    df_list.append(pd.read_csv(filename))
+    full_df = pd.concat(df_list)
+    full_df.to_csv('full.csv', index=False)
+
+df=pd.read_csv("/var/log/bndf/full.csv")
 df.head()
 metrics_df=df
 
