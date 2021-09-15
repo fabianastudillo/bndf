@@ -11,6 +11,8 @@ import glob, os
 from sklearn.ensemble import IsolationForest
 import matplotlib.pyplot as plt
 import logging
+import csv
+import numpy as np
 
 warnings.filterwarnings('ignore')
 #print(os.listdir("../Tesis"))
@@ -34,8 +36,10 @@ to_model_columns=metrics_df.columns[3:18]
                     #verbose=0)
 anomalies=[]
 estimator=[]                
-for i in range(5,40): 
-    n_estimator=i*10
+#for i in range(5,40): 
+#    n_estimator=i*10
+for i in range(2,1000):
+    n_estimator=i
     clf=IsolationForest(n_estimators=n_estimator, max_samples='auto', contamination='auto',
                         max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
                         verbose=0)
@@ -49,10 +53,14 @@ for i in range(5,40):
     a=metrics_df['anomaly'].value_counts()
     estimator.append(n_estimator)
     anomalies.append(a.values[1])
-    logging.info("IsolationForest: " + n_estimator)
-    logging.info("IsolationForest: " + metrics_df['anomaly'].value_counts())
+    logging.info("IsolationForest: ", n_estimator, " ", metrics_df['anomaly'].value_counts())
 #    print(n_estimator)
 #    print(metrics_df['anomaly'].value_counts())
+
+r = open('/var/log/bndf/estimators.csv', 'w')
+writer = csv.writer(r)
+writer.writerows(np.stack([estimator,anomalies], axis=1))
+r.close()
 
 f=plt.figure()
 plt.title("Number of Anomalies Found")
@@ -61,3 +69,4 @@ plt.ylabel("Number of Anomalies")
 plt.plot(estimator,anomalies)
 plt.show()
 f.savefig("full.pdf", bbox_inches='tight')
+
