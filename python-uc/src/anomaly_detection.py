@@ -230,11 +230,11 @@ def Convert(a):
     res_dct = dict(zip(it, it))
     return res_dct
 
-socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
-socket.socket = socks.socksocket
+#socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
+#socket.socket = socks.socksocket
 
 try:
-  es = Elasticsearch([{'host':'172.17.1.73','port':9200,}])
+  es = Elasticsearch([{'host':'elasticsearch','port':9200,}])
   print ("Connected")
 except Exception as ex:
   print ("Error:", ex)
