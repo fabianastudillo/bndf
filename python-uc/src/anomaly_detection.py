@@ -6,6 +6,7 @@ Created on Fri Nov 27 17:36:20 2020
 @author: vicente
 """
 
+import glob, os
 import numpy as np # linear algebra
 import pandas as pd # data processing
 import warnings
@@ -17,7 +18,7 @@ from sklearn.preprocessing import StandardScaler
 from mpl_toolkits.mplot3d import Axes3D
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import chart_studio.plotly as py
-from matplotlib import mpl
+import matplotlib as mpl
 import plotly.graph_objs as go
 import plotly.io as pio
 
@@ -140,9 +141,15 @@ def classify_anomalies(df,metric_name):
 ##################################
 
 warnings.filterwarnings('ignore')
-#print(os.listdir("../Tesis"))
 
-df=pd.read_csv("/home/vicente/Escritorio/Tesis/fingerprints.csv")
+df_list = []
+
+for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
+    df_list.append(pd.read_csv(filename))
+    full_df = pd.concat(df_list)
+    full_df.to_csv('/var/log/bndf/full.csv', index=False)
+
+df=pd.read_csv("/var/log/bndf/full.csv")
 df.head()
 metrics_df=df
 print("numero de host: ",len(set(metrics_df['ip'])))
