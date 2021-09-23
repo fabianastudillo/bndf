@@ -103,7 +103,7 @@ socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
 socket.socket = socks.socksocket
 
 try:
-  es = Elasticsearch([{'host':'172.17.1.73','port':9200,}])
+  es = Elasticsearch([{'host':'elasticsearch','port':9200,}])
   print ("Connected")
 except Exception as ex:
   print ("Error:", ex)
@@ -137,15 +137,15 @@ metrics_df.to_csv(r'FP_anomalies_target1.csv',index=False)
 metrics_df=pd.read_csv("../Tesis/FP_anomalies_target1.csv")
 outliers=metrics_df.loc[metrics_df['anomaly']==-1]
 
-print("numero de huellas infectadas:",len(outliers))
-print("numero de hosts infectados:",len(set(outliers['ip'])))
-print("Veces que los host han sido catalogados:")
+print("Number of infected footprints:",len(outliers))
+print("Number of infected hosts:",len(set(outliers['ip'])))
+print("Times hosts have been cataloged:")
 a=Counter(outliers['ip'])
 a=dict(a)
 
-print("minimo de veces detectado:",min(a.values()))
-print("maximo de veces detectado:",max(a.values()))
-print("promedio de veces detectado:",statistics.mean(a.values()))
+print("Minimum number of times detected:",min(a.values()))
+print("Maximum times detected:",max(a.values()))
+print("Average times detected:",statistics.mean(a.values()))
 
 salida = open("dominios_dga.txt", "w") 
 for item in outliers['index']:
@@ -155,7 +155,7 @@ for item in outliers['index']:
     gte=datetime.datetime.strptime(ip_time[1],'%Y-%m-%dT%H:%M:%SZ')
     lte=(gte+datetime.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")   
     indice="logstash-dns-"+gte.strftime("%Y.%m.%d")
-    uri = "http://172.17.1.73:9200/"+indice+"/_search"
+    uri = "http://elasticsearch:9200/"+indice+"/_search"
     
     query=consultas.statement_pNX0(ip_time[0],gte.strftime("%Y-%m-%dT%H:%M:%SZ"),lte)
     r = requests.get(uri,headers=HEADERS, data=query).json()
