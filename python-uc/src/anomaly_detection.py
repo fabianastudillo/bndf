@@ -21,25 +21,26 @@ import chart_studio.plotly as py
 import matplotlib as mpl
 import plotly.graph_objs as go
 import plotly.io as pio
+import logging
 
 #################################3
 def plot_anomaly(df,metric_name):
-    # Descripcion
-    descrip=["P1","Numero de solicitudes DNS por hora",
-            "P2","Numero de solicitudes DNS distintas por hora",
-            "P3","Mayor cantidad de solicitudes para un solo dominio por hora",
-            "P4","Numero medio de solicitudes por minuto",
-            "P5","La mayor cantidad de solicitudes por minuto",
-            "P6","Número de consultas de registros MX por hora",
-            "P7","Número de consultas de registros PTR por hora",
-            "P8","Número de servidores DNS distintos consultados por hora",
-            "P9","Número de dominios de TLD distintos consultados por hora",
-            "P10","Número de dominios SLD distintos consultados por hora",
-            "P11","Relación de unicidad por hora",
-            "P12","Número de consultas fallidas / NXDOMAIN por hora",
-            "P13","Número de ciudades distintas de direcciones IP resueltas",
-            "P14","Número de países distintos de direcciones IP resueltas",
-            "P15","Relación de flujo por hora"]
+    # Description
+    descrip=["P1","Number of DNS requests per hour",
+            "P2","Number of different DNS requests per hour",
+            "P3","Highest number of requests for a single domain per hour",
+            "P4","Average number of requests per minute",
+            "P5","Most requests per minute",
+            "P6","Number of MX record queries per hour",
+            "P7","Number of PTR records queries per hour",
+            "P8","Number of different DNS servers queried per hour",
+            "P9","Number of different TLD domains queried per hour",
+            "P10","Number of different SLD domains consulted per hour",
+            "P11","Uniqueness ratio per hour",
+            "P12","Number of failed / NXDOMAIN queries per hour",
+            "P13","Number of different cities of resolved IP addresses",
+            "P14","Number of different countries of resolved IP addresse",
+            "P15","Hourly flow rate"]
     pio.renderers.default='browser'
     #df.load_date = pd.to_datetime(df['load_date'].astype(str), format="%Y%m%d")
     dates = df.load_date
@@ -140,21 +141,30 @@ def classify_anomalies(df,metric_name):
 
 ##################################
 
-warnings.filterwarnings('ignore')
+from datetime import date
 
+warnings.filterwarnings('ignore')
+today = date.today()
+current_date = today.strftime("%Y.%m.%d")
+
+logging.basicConfig(filename='/var/log/bndf.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+
+# Dataframe list of all entries
 df_list = []
 
-for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
+for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-2021-09-13.csv"))):
     df_list.append(pd.read_csv(filename))
     full_df = pd.concat(df_list)
-    full_df.to_csv('/var/log/bndf/full.csv', index=False)
+    full_df.to_csv('/var/log/bndf/full-' + current_date + '.csv', index=False)
 
-df=pd.read_csv("/var/log/bndf/full.csv")
+df=pd.read_csv("/var/log/bndf/full-" + current_date + ".csv")
 df.head()
 metrics_df=df
-print("numero de host: ",len(set(metrics_df['ip'])))
+logging.info("Number of hosts: " + str(len(set(metrics_df['ip']))))
 
-metrics_df.columns
+
+#metrics_df.columns
+# take csv columns from 3 to 18 
 to_model_columns=metrics_df.columns[3:18]
 
 #clf=IsolationForest(n_estimators=100, max_samples='auto', contamination=float(.12),
@@ -164,21 +174,25 @@ clf=IsolationForest(n_estimators=110, max_samples='auto', contamination='auto',
                     max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
                     verbose=0)
 clf.fit(metrics_df[to_model_columns])
-pred= clf.predict(metrics_df[to_model_columns])
+# Execute the predictions from data
+pred=clf.predict(metrics_df[to_model_columns])
+# Create a new column called anomaly
 metrics_df['anomaly']=pred
+# Get all the outliers (-1) from data frame metrics_df
 outliers=metrics_df.loc[metrics_df['anomaly']==-1]
 outlier_index=list(outliers.index)
 #print(outlier_index)
 #Find the number of anomalies and normal points here points classified -1 are anomalous
-print(metrics_df['anomaly'].value_counts())
+logging.info("Anomalies: " + str(metrics_df['anomaly'].value_counts()))
 
-pca = PCA(n_components=3)  # Reduce to k=3 dimensions
+# Reduce to k=3 dimensions
+pca = PCA(n_components=3)  
 scaler = StandardScaler()
-#normalize the metrics
+# Normalize the metrics
 X = scaler.fit_transform(metrics_df[to_model_columns])
 X_reduce = pca.fit_transform(X)
 fig = plt.figure()
-fig.suptitle('Huellas_DNS_3D')
+fig.suptitle('DNS_Fingerprints_3D')
 ax = fig.add_subplot(111, projection='3d')
 # Plot the compressed data points
 ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
@@ -188,6 +202,7 @@ ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier
 ax.legend()
 
 plt.show()
+fig.savefig("dns_fingerprints_3d-1-" + current_date + ".pdf")
 
 pca = PCA(n_components=3)  # Reduce to k=3 dimensions
 scaler = StandardScaler()
@@ -195,7 +210,7 @@ scaler = StandardScaler()
 X = scaler.fit_transform(metrics_df[to_model_columns])
 X_reduce = pca.fit_transform(X)
 fig = plt.figure()
-fig.suptitle('Huellas_DNS_3D')
+fig.suptitle('DNS_Fingerprints_3D')
 ax = fig.add_subplot(111, projection='3d')
 # Plot the compressed data points
 ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
@@ -208,13 +223,14 @@ ax.set_xlim3d(-3,4)
 ax.set_ylim3d(0,4)
 #ax.axis('off')
 plt.show()
+fig.savefig("dns_fingerprints_3d-2-" + current_date + ".pdf")
 
-plt.figure()
+fig=plt.figure()
 pca = PCA(2)
 pca.fit(metrics_df[to_model_columns])
 res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
 Z = np.array(res)
-plt.title("Huellas_DNS_2D")
+plt.title("DNS_Fingerprints_2D")
 plt.contourf( Z, cmap=plt.cm.Blues_r)
 b1 = plt.scatter(res[0], res[1], c='green',
                  s=20,label="normal")
@@ -222,15 +238,17 @@ b1 =plt.scatter(res.iloc[outlier_index,0],res.iloc[outlier_index,1], c='red',
                 s=20,label="anormal")
 plt.legend(loc="upper right")
 plt.show()
+fig.savefig("dns_fingerprint_2d.pdf")
 
 ####
-metrics_df.to_csv(r'FP_anomalies_target.csv',index=False)
+metrics_df.to_csv(r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv',index=False)
 
 from elasticsearch import Elasticsearch
 import pandas as pd
 import socket
 import socks
 import numpy as np
+
 ii = 1
 def Convert(a):
     it = iter(a)
@@ -245,9 +263,13 @@ try:
   print ("Connected")
 except Exception as ex:
   print ("Error:", ex)
-  
+  exit() 
+
+# Index of cataloged footprints
+index_fp="cataloged_footprints-" + current_date
+
 try:
-    res=es.indices.delete(index='huellas_catalogadas')
+    res=es.indices.delete(index=index_fp)
 except:
     pass
 
@@ -264,10 +286,10 @@ datos_finales=[["@timestamp",time,
 datos_finales_json=[Convert(item) for item in datos_finales]
     
 for item in datos_finales_json:
-    res=es.index(index='huellas_catalogadas',doc_type='huellas_catalogadas',id=ii,body=item)
+    res=es.index(index=index_fp,doc_type='cataloged_footprints',id=ii,body=item)
     ii=ii+1
 ####
-init_notebook_mode(connected=True)
+#init_notebook_mode(connected=True)
 warnings.filterwarnings('ignore')
 
 ###
@@ -290,4 +312,3 @@ for i in range(3,len(metrics_df.columns)-1):
     outlier_index=list(outliers.index)
     test_df=classify_anomalies(test_df,metrics_df.columns[i])
     plot_anomaly(test_df,metrics_df.columns[i])
-     
