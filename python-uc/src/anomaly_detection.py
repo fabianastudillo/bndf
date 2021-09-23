@@ -10,6 +10,7 @@ import glob, os
 import numpy as np # linear algebra
 import pandas as pd # data processing
 import warnings
+from argparse import ArgumentParser
 #import os
 from sklearn.ensemble import IsolationForest
 import matplotlib.pyplot as plt
@@ -22,6 +23,7 @@ import matplotlib as mpl
 import plotly.graph_objs as go
 import plotly.io as pio
 import logging
+from datetime import date
 
 #################################3
 def plot_anomaly(df,metric_name):
@@ -141,174 +143,199 @@ def classify_anomalies(df,metric_name):
 
 ##################################
 
-from datetime import date
-
-warnings.filterwarnings('ignore')
-today = date.today()
-current_date = today.strftime("%Y.%m.%d")
-
-logging.basicConfig(filename='/var/log/bndf.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
-
-# Dataframe list of all entries
-df_list = []
-
-for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-2021-09-13.csv"))):
-    df_list.append(pd.read_csv(filename))
-    full_df = pd.concat(df_list)
-    full_df.to_csv('/var/log/bndf/full-' + current_date + '.csv', index=False)
-
-df=pd.read_csv("/var/log/bndf/full-" + current_date + ".csv")
-df.head()
-metrics_df=df
-logging.info("Number of hosts: " + str(len(set(metrics_df['ip']))))
-
-
-#metrics_df.columns
-# take csv columns from 3 to 18 
-to_model_columns=metrics_df.columns[3:18]
-
-#clf=IsolationForest(n_estimators=100, max_samples='auto', contamination=float(.12),
-                    #max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
-                    #verbose=0)
-clf=IsolationForest(n_estimators=110, max_samples='auto', contamination='auto',
-                    max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
-                    verbose=0)
-clf.fit(metrics_df[to_model_columns])
-# Execute the predictions from data
-pred=clf.predict(metrics_df[to_model_columns])
-# Create a new column called anomaly
-metrics_df['anomaly']=pred
-# Get all the outliers (-1) from data frame metrics_df
-outliers=metrics_df.loc[metrics_df['anomaly']==-1]
-outlier_index=list(outliers.index)
-#print(outlier_index)
-#Find the number of anomalies and normal points here points classified -1 are anomalous
-logging.info("Anomalies: " + str(metrics_df['anomaly'].value_counts()))
-
-# Reduce to k=3 dimensions
-pca = PCA(n_components=3)  
-scaler = StandardScaler()
-# Normalize the metrics
-X = scaler.fit_transform(metrics_df[to_model_columns])
-X_reduce = pca.fit_transform(X)
-fig = plt.figure()
-fig.suptitle('DNS_Fingerprints_3D')
-ax = fig.add_subplot(111, projection='3d')
-# Plot the compressed data points
-ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
-# Plot x's for the ground truth outliers
-ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier_index,2],
-           lw=1, s=4, c="red", label="anormal")
-ax.legend()
-
-plt.show()
-fig.savefig("dns_fingerprints_3d-1-" + current_date + ".pdf")
-
-pca = PCA(n_components=3)  # Reduce to k=3 dimensions
-scaler = StandardScaler()
-#normalize the metrics
-X = scaler.fit_transform(metrics_df[to_model_columns])
-X_reduce = pca.fit_transform(X)
-fig = plt.figure()
-fig.suptitle('DNS_Fingerprints_3D')
-ax = fig.add_subplot(111, projection='3d')
-# Plot the compressed data points
-ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
-# Plot x's for the ground truth outliers
-ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier_index,2],
-           lw=1, s=4, c="red", label="anormal")
-ax.legend()
-ax.set_zlim3d(-10,5)
-ax.set_xlim3d(-3,4)
-ax.set_ylim3d(0,4)
-#ax.axis('off')
-plt.show()
-fig.savefig("dns_fingerprints_3d-2-" + current_date + ".pdf")
-
-fig=plt.figure()
-pca = PCA(2)
-pca.fit(metrics_df[to_model_columns])
-res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
-Z = np.array(res)
-plt.title("DNS_Fingerprints_2D")
-plt.contourf( Z, cmap=plt.cm.Blues_r)
-b1 = plt.scatter(res[0], res[1], c='green',
-                 s=20,label="normal")
-b1 =plt.scatter(res.iloc[outlier_index,0],res.iloc[outlier_index,1], c='red',
-                s=20,label="anormal")
-plt.legend(loc="upper right")
-plt.show()
-fig.savefig("dns_fingerprint_2d.pdf")
-
-####
-metrics_df.to_csv(r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv',index=False)
-
-from elasticsearch import Elasticsearch
-import pandas as pd
-import socket
-import socks
-import numpy as np
-
-ii = 1
 def Convert(a):
     it = iter(a)
     res_dct = dict(zip(it, it))
     return res_dct
 
-#socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
-#socket.socket = socks.socksocket
+def main():
 
-try:
-  es = Elasticsearch([{'host':'elasticsearch','port':9200,}])
-  print ("Connected")
-except Exception as ex:
-  print ("Error:", ex)
-  exit() 
+    parser = ArgumentParser(
+            description='Fingerprint generator',
+            epilog="This script detects the anomalies from a fingerprint file.")
 
-# Index of cataloged footprints
-index_fp="cataloged_footprints-" + current_date
+    # Add the arguments to the parser
+    parser.add_argument("-o", "--outliers", dest="opt_outliers", action='store_true', required=False,
+    help="This option generates the outliers file")
+    parser.add_argument("-3", "--reduce3d", dest="opt_reduce3d", action='store_true', required=False,
+    help="Reduce to 3 dimensiones using PCA")
+    parser.add_argument("-2", "--reduce2d", dest="opt_reduce2d", action='store_true', required=False,
+    help="Reduce to 2 dimensiones using PCA")
+    parser.add_argument("-e", "--es", dest="opt_es", action='store_true', required=False,
+    help="Upload the anomalies to elasticsearch")
 
-try:
-    res=es.indices.delete(index=index_fp)
-except:
-    pass
+    args = parser.parse_args()
+    logging.basicConfig(filename='/var/log/bndf.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+    today = date.today()
+    current_date = today.strftime("%Y.%m.%d")
 
-datos_finales=[["@timestamp",time,
-                "ip",ip,"p1",p1,"p2",p2,"p3",p3,"p4",p4,"p5",p5,
-                "p6",p6,"p7",p7,"p8",p8,"p9",p9,"p10",p10,"p11",
-                p11,"p12",p12,"p13",p13,"p14",p14,"p15",p15,"an",an] 
-                for time,ip,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,an 
-                in zip(metrics_df['@timestamp'],metrics_df['ip'],metrics_df['P1'],metrics_df['P2'],metrics_df['P3'],
-        metrics_df['P4'],metrics_df['P5'],metrics_df['P6'],metrics_df['P7'],metrics_df['P8'],metrics_df['P9'],
-        metrics_df['P10'],metrics_df['P11'],metrics_df['P12'],metrics_df['P13'],metrics_df['P14'],metrics_df['P15'],
-        metrics_df['anomaly'])]
-                        
-datos_finales_json=[Convert(item) for item in datos_finales]
-    
-for item in datos_finales_json:
-    res=es.index(index=index_fp,doc_type='cataloged_footprints',id=ii,body=item)
-    ii=ii+1
-####
-#init_notebook_mode(connected=True)
-warnings.filterwarnings('ignore')
+    if args.opt_outliers:
+        logging.info("Generate outliers ...")
+        warnings.filterwarnings('ignore')
 
-###
-#columna_indice=[i for i in range(len(metrics_df))]
-#metrics_df['index']=columna_indice
-###
+        # Dataframe list of all entries
+        df_list = []
 
-for i in range(3,len(metrics_df.columns)-1):
-    clf.fit(metrics_df.iloc[:,i:i+1])
-    pred = clf.predict(metrics_df.iloc[:,i:i+1])
-    test_df=pd.DataFrame()
+        for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-2021-09-13.csv"))):
+            df_list.append(pd.read_csv(filename))
+            full_df = pd.concat(df_list)
+            full_df.to_csv('/var/log/bndf/full-' + current_date + '.csv', index=False)
 
-    test_df['load_date']=metrics_df['index']
-    #Find decision function to find the score and classify anomalies
-    test_df['score']=clf.decision_function(metrics_df.iloc[:,i:i+1])
-    test_df['actuals']=metrics_df.iloc[:,i:i+1]
-    test_df['anomaly']=pred
-    #Get the indexes of outliers in order to compare the metrics     with use case anomalies if required
-    outliers=test_df.loc[test_df['anomaly']==-1]
-    outlier_index=list(outliers.index)
-    test_df=classify_anomalies(test_df,metrics_df.columns[i])
-    plot_anomaly(test_df,metrics_df.columns[i])
+        df=pd.read_csv("/var/log/bndf/full-" + current_date + ".csv")
+        df.head()
+        metrics_df=df
+        logging.info("Number of hosts: " + str(len(set(metrics_df['ip']))))
+
+
+        #metrics_df.columns
+        # take csv columns from 3 to 18 
+        to_model_columns=metrics_df.columns[3:18]
+
+        #clf=IsolationForest(n_estimators=100, max_samples='auto', contamination=float(.12),
+                            #max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
+                            #verbose=0)
+        clf=IsolationForest(n_estimators=110, max_samples='auto', contamination='auto',
+                            max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
+                            verbose=0)
+        clf.fit(metrics_df[to_model_columns])
+        # Execute the predictions from data
+        pred=clf.predict(metrics_df[to_model_columns])
+        # Create a new column called anomaly
+        metrics_df['anomaly']=pred
+        # Get all the outliers (-1) from data frame metrics_df
+        outliers=metrics_df.loc[metrics_df['anomaly']==-1]
+        outlier_index=list(outliers.index)
+        #print(outlier_index)
+        #Find the number of anomalies and normal points here points classified -1 are anomalous
+        logging.info("Anomalies: " + str(metrics_df['anomaly'].value_counts()))
+        ####
+        metrics_df.to_csv(r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv',index=False)
+
+    if args.opt_reduce3d:
+        # Reduce to k=3 dimensions
+        pca = PCA(n_components=3)  
+        scaler = StandardScaler()
+        # Normalize the metrics
+        X = scaler.fit_transform(metrics_df[to_model_columns])
+        X_reduce = pca.fit_transform(X)
+        fig = plt.figure()
+        fig.suptitle('DNS_Fingerprints_3D')
+        ax = fig.add_subplot(111, projection='3d')
+        # Plot the compressed data points
+        ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
+        # Plot x's for the ground truth outliers
+        ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier_index,2],
+                lw=1, s=4, c="red", label="anormal")
+        ax.legend()
+
+        plt.show()
+        fig.savefig("dns_fingerprints_3d-1-" + current_date + ".pdf")
+
+        #pca = PCA(n_components=3)  # Reduce to k=3 dimensions
+        #scaler = StandardScaler()
+        #normalize the metrics
+        #X = scaler.fit_transform(metrics_df[to_model_columns])
+        #X_reduce = pca.fit_transform(X)
+        fig = plt.figure()
+        fig.suptitle('DNS_Fingerprints_3D')
+        ax = fig.add_subplot(111, projection='3d')
+        # Plot the compressed data points
+        ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
+        # Plot x's for the ground truth outliers
+        ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier_index,2],
+                lw=1, s=4, c="red", label="anormal")
+        ax.legend()
+        ax.set_zlim3d(-10,5)
+        ax.set_xlim3d(-3,4)
+        ax.set_ylim3d(0,4)
+        #ax.axis('off')
+        plt.show()
+        fig.savefig("dns_fingerprints_3d-2-" + current_date + ".pdf")
+
+        fig=plt.figure()
+
+    if args.opt_reduce2d:
+        pca = PCA(2)
+        pca.fit(metrics_df[to_model_columns])
+        res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
+        Z = np.array(res)
+        plt.title("DNS_Fingerprints_2D")
+        plt.contourf( Z, cmap=plt.cm.Blues_r)
+        b1 = plt.scatter(res[0], res[1], c='green',
+                        s=20,label="normal")
+        b1 =plt.scatter(res.iloc[outlier_index,0],res.iloc[outlier_index,1], c='red',
+                        s=20,label="anormal")
+        plt.legend(loc="upper right")
+        plt.show()
+        fig.savefig("dns_fingerprint_2d.pdf")
+
+    if args.opt_es:
+        from elasticsearch import Elasticsearch
+        import pandas as pd
+        #import socket
+        #import socks
+        import numpy as np
+
+        ii = 1
+
+        #socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
+        #socket.socket = socks.socksocket
+
+        try:
+            es = Elasticsearch([{'host':'elasticsearch','port':9200,}])
+            print ("Connected")
+        except Exception as ex:
+            print ("Error:", ex)
+            exit() 
+
+        # Index of cataloged footprints
+        index_fp="cataloged_footprints-" + current_date
+
+        try:
+            res=es.indices.delete(index=index_fp)
+        except:
+            pass
+
+        datos_finales=[["@timestamp",time,
+                        "ip",ip,"p1",p1,"p2",p2,"p3",p3,"p4",p4,"p5",p5,
+                        "p6",p6,"p7",p7,"p8",p8,"p9",p9,"p10",p10,"p11",
+                        p11,"p12",p12,"p13",p13,"p14",p14,"p15",p15,"an",an] 
+                        for time,ip,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,an 
+                        in zip(metrics_df['@timestamp'],metrics_df['ip'],metrics_df['P1'],metrics_df['P2'],metrics_df['P3'],
+                metrics_df['P4'],metrics_df['P5'],metrics_df['P6'],metrics_df['P7'],metrics_df['P8'],metrics_df['P9'],
+                metrics_df['P10'],metrics_df['P11'],metrics_df['P12'],metrics_df['P13'],metrics_df['P14'],metrics_df['P15'],
+                metrics_df['anomaly'])]
+                                
+        datos_finales_json=[Convert(item) for item in datos_finales]
+            
+        for item in datos_finales_json:
+            res=es.index(index=index_fp,doc_type='cataloged_footprints',id=ii,body=item)
+            ii=ii+1
+        ####
+        #init_notebook_mode(connected=True)
+        warnings.filterwarnings('ignore')
+
+        ###
+        #columna_indice=[i for i in range(len(metrics_df))]
+        #metrics_df['index']=columna_indice
+        ###
+
+        for i in range(3,len(metrics_df.columns)-1):
+            clf.fit(metrics_df.iloc[:,i:i+1])
+            pred = clf.predict(metrics_df.iloc[:,i:i+1])
+            test_df=pd.DataFrame()
+
+            test_df['load_date']=metrics_df['index']
+            #Find decision function to find the score and classify anomalies
+            test_df['score']=clf.decision_function(metrics_df.iloc[:,i:i+1])
+            test_df['actuals']=metrics_df.iloc[:,i:i+1]
+            test_df['anomaly']=pred
+            #Get the indexes of outliers in order to compare the metrics     with use case anomalies if required
+            outliers=test_df.loc[test_df['anomaly']==-1]
+            outlier_index=list(outliers.index)
+            test_df=classify_anomalies(test_df,metrics_df.columns[i])
+            plot_anomaly(test_df,metrics_df.columns[i])
+
+
+if __name__ == "__main__":
+    main()
