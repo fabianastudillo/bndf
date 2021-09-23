@@ -24,6 +24,7 @@ import plotly.graph_objs as go
 import plotly.io as pio
 import logging
 from datetime import date
+import sys
 
 #################################3
 def plot_anomaly(df,metric_name):
@@ -163,6 +164,10 @@ def main():
     help="Reduce to 2 dimensiones using PCA")
     parser.add_argument("-e", "--es", dest="opt_es", action='store_true', required=False,
     help="Upload the anomalies to elasticsearch")
+
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     args = parser.parse_args()
     logging.basicConfig(filename='/var/log/bndf.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
