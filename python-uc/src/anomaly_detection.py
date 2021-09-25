@@ -252,6 +252,7 @@ def main():
         for item in datos_finales_json:
             res=es.index(index=index_fp,doc_type='cataloged_footprints',id=ii,body=item)
             ii=ii+1
+        print("ii> "+str(ii))
         ####
         #init_notebook_mode(connected=True)
         warnings.filterwarnings('ignore')
@@ -266,6 +267,8 @@ def main():
                             verbose=0)
 
         # First column is timestamp
+        #index = range(1,len(metrics_df.columns)-1)
+
         for i in range(2,len(metrics_df.columns)-1):
             clf.fit(metrics_df.iloc[:,i:i+1])
             pred = clf.predict(metrics_df.iloc[:,i:i+1])
