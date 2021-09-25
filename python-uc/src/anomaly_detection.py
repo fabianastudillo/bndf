@@ -59,55 +59,6 @@ def plot_anomaly(df,metric_name):
     writer.writerows(np.stack([dates,df['actuals'],anomaly_points], axis=1))
     r.close()
 
-    ##print(table)
-    ##Plot the actuals points
-    #Actuals = go.Scatter(name='Limpio',
-    #                     x=dates,
-    #                     y=df['actuals'],
-    #                     xaxis='x1', yaxis='y1',
-    #                     mode='markers',
-    #                     marker=dict(size=5,
-    #                                 line=dict(width=1),
-    #                                 color="blue"))
-    ##Highlight the anomaly points
-    #anomalies_map = go.Scatter(name="Bot",
-    #                           showlegend=True,
-    #                           x=dates,
-    #                           y=anomaly_points,
-    #                           mode='markers',
-    #                           xaxis='x1',
-    #                           yaxis='y1',
-    #                           marker=dict(color="red",
-    #                                       size=5,
-    #                                       line=dict(
-    #                                           color="red",
-    #                                           width=1)))
-    ##print(anomalies_map)
-    
-    #axis = dict(
-    #        showline=True,
-    #        zeroline=False,
-    #        showgrid=True,
-    #        mirror=True,
-    #        ticklen=4,
-    #        gridcolor='#ffffff',
-    #        tickfont=dict(size=10))
-    #layout = dict(
-    #        width=1000,
-    #        height=865,
-    #        autosize=True,
-    #        #title=metric_name+": "+descrip[descrip.index(metric_name)+1],
-    #        margin=dict(t=75),
-    #        showlegend=True,
-    #        xaxis1=dict(axis, **dict(domain=[0, 1], anchor='y1', showticklabels=True)),
-    #        yaxis1=dict(axis, **dict(domain=[2 * 0.21 + 0.20, 1], anchor='x1', hoverformat='.2f')))
-    
-    #fig = go.Figure(data=[Actuals,anomalies_map], layout=layout)
-    #fig.update_yaxes(type="log")
-    ##plot(fig)
-    ##fig.show(renderer="pdf")
-    #fig.write_image("/bndf/anomaly.pdf")
-
 def classify_anomalies(df,metric_name):
     df['metric_name']=metric_name
     df = df.sort_values(by='load_date', ascending=False)
@@ -314,7 +265,8 @@ def main():
                             max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
                             verbose=0)
 
-        for i in range(3,len(metrics_df.columns)-1):
+        # First column is timestamp
+        for i in range(2,len(metrics_df.columns)-1):
             clf.fit(metrics_df.iloc[:,i:i+1])
             pred = clf.predict(metrics_df.iloc[:,i:i+1])
             test_df=pd.DataFrame()
@@ -329,7 +281,38 @@ def main():
             outliers=test_df.loc[test_df['anomaly']==-1]
             outlier_index=list(outliers.index)
             test_df=classify_anomalies(test_df,metrics_df.columns[i])
-            plot_anomaly(test_df,metrics_df.columns[i])
+            # TODO: se debe imprimir para cada parametro
+            #plot_anomaly(test_df,metrics_df.columns[i])
+            # Description
+            #descrip=["P1","Number of DNS requests per hour",
+            #        "P2","Number of different DNS requests per hour",
+            #        "P3","Highest number of requests for a single domain per hour",
+            #        "P4","Average number of requests per minute",
+            #        "P5","Most requests per minute",
+            #        "P6","Number of MX record queries per hour",
+            #        "P7","Number of PTR records queries per hour",
+            #        "P8","Number of different DNS servers queried per hour",
+            #        "P9","Number of different TLD domains queried per hour",
+            #        "P10","Number of different SLD domains consulted per hour",
+            #        "P11","Uniqueness ratio per hour",
+            #        "P12","Number of failed / NXDOMAIN queries per hour",
+            #        "P13","Number of different cities of resolved IP addresses",
+            #        "P14","Number of different countries of resolved IP addresse",
+            #        "P15","Hourly flow rate"]
+            #pio.renderers.default='browser'
+            ##df.load_date = pd.to_datetime(df['load_date'].astype(str), format="%Y%m%d")
+            dates = test_df.load_date
+            #identify the anomaly points and create a array of its values for plot
+            bool_array = (abs(test_df['anomaly']) > 0)
+            actuals = test_df["actuals"][-len(bool_array):]
+            anomaly_points = bool_array * actuals
+            anomaly_points[anomaly_points == 0] = np.nan
+            print(len(dates))
+
+            r = open('/var/log/bndf/anomalies.csv', 'w')
+            writer = csv.writer(r)
+            writer.writerows(np.stack([dates,test_df['actuals'],anomaly_points], axis=1))
+            r.close()
 
 
 if __name__ == "__main__":
