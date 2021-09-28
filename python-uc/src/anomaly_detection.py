@@ -269,6 +269,7 @@ def main():
         # First column is timestamp
         #index = range(1,len(metrics_df.columns)-1)
 
+        # TODO: Now parameters are save in 12 files, we have to save in one file
         for i in range(2,len(metrics_df.columns)-1):
             clf.fit(metrics_df.iloc[:,i:i+1])
             pred = clf.predict(metrics_df.iloc[:,i:i+1])
