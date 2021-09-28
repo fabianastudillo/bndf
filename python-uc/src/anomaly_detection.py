@@ -275,16 +275,17 @@ def main():
             test_df=pd.DataFrame()
 
             #test_df['load_date']=metrics_df['index']
-            test_df['load_date']=metrics_df['@timestamp']
+            #test_df['load_date']=metrics_df['@timestamp']
+            dates = metrics_df['@timestamp']
             #Find decision function to find the score and classify anomalies
-            test_df['score']=clf.decision_function(metrics_df.iloc[:,i:i+1])
+            ##test_df['score']=clf.decision_function(metrics_df.iloc[:,i:i+1])
             test_df['actuals']=metrics_df.iloc[:,i:i+1]
             test_df['anomaly']=pred
             #Get the indexes of outliers in order to compare the metrics     with use case anomalies if required
-            outliers=test_df.loc[test_df['anomaly']==-1]
-            outlier_index=list(outliers.index)
+            ##outliers=test_df.loc[test_df['anomaly']==-1]
+            ##outlier_index=list(outliers.index)
             test_df=classify_anomalies(test_df,metrics_df.columns[i])
-            # TODO: se debe imprimir para cada parametro
+            
             #plot_anomaly(test_df,metrics_df.columns[i])
             # Description
             #descrip=["P1","Number of DNS requests per hour",
@@ -304,15 +305,15 @@ def main():
             #        "P15","Hourly flow rate"]
             #pio.renderers.default='browser'
             ##df.load_date = pd.to_datetime(df['load_date'].astype(str), format="%Y%m%d")
-            dates = test_df.load_date
+            #dates = test_df.load_date
             #identify the anomaly points and create a array of its values for plot
             bool_array = (abs(test_df['anomaly']) > 0)
             actuals = test_df["actuals"][-len(bool_array):]
             anomaly_points = bool_array * actuals
             anomaly_points[anomaly_points == 0] = np.nan
-            print(len(dates))
+            
 
-            r = open('/var/log/bndf/anomalies.csv', 'w')
+            r = open('/var/log/bndf/anomalies-p' + str(i-1) + '.csv', 'w')
             writer = csv.writer(r)
             writer.writerows(np.stack([dates,test_df['actuals'],anomaly_points], axis=1))
             r.close()
