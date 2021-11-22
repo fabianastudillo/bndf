@@ -28,7 +28,7 @@ import sys
 import csv
 
 #################################3
-def plot_anomaly(df,metric_name):
+#def plot_anomaly(df,metric_name):
     # Description
     #descrip=["P1","Number of DNS requests per hour",
     #        "P2","Number of different DNS requests per hour",
@@ -47,17 +47,17 @@ def plot_anomaly(df,metric_name):
     #        "P15","Hourly flow rate"]
     #pio.renderers.default='browser'
     ##df.load_date = pd.to_datetime(df['load_date'].astype(str), format="%Y%m%d")
-    dates = df.load_date
+#    dates = df.load_date
     #identify the anomaly points and create a array of its values for plot
-    bool_array = (abs(df['anomaly']) > 0)
-    actuals = df["actuals"][-len(bool_array):]
-    anomaly_points = bool_array * actuals
-    anomaly_points[anomaly_points == 0] = np.nan
+#    bool_array = (abs(df['anomaly']) > 0)
+#    actuals = df["actuals"][-len(bool_array):]
+#    anomaly_points = bool_array * actuals
+#    anomaly_points[anomaly_points == 0] = np.nan
 
-    r = open('/var/log/bndf/anomalies.csv', 'w')
-    writer = csv.writer(r)
-    writer.writerows(np.stack([dates,df['actuals'],anomaly_points], axis=1))
-    r.close()
+#    r = open('/var/log/bndf/anomalies.csv', 'w')
+#    writer = csv.writer(r)
+#    writer.writerows(np.stack([dates,df['actuals'],anomaly_points], axis=1))
+#    r.close()
 
 def classify_anomalies(df,metric_name):
     df['metric_name']=metric_name

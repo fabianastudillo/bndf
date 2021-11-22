@@ -18,9 +18,13 @@ from sklearn.metrics import classification_report
 import sklearn.metrics
 from sklearn import datasets
 from sklearn.ensemble import ExtraTreesClassifier
+from datetime import date
+
+today = date.today()
+current_date = today.strftime("%Y.%m.%d")
 
 #Cargar Fichero
-AH_data = pd.read_csv("../Tesis/FP_anomalies_target1.csv")
+AH_data = pd.read_csv("/var/log/bndf/FP_anomalies_target-" + current_date + ".csv")
 
 #Eliminar Valores missing
 data_clean = AH_data.dropna()
