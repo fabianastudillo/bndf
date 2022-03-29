@@ -59,7 +59,7 @@ import csv
 #    writer.writerows(np.stack([dates,df['actuals'],anomaly_points], axis=1))
 #    r.close()
 
-def classify_anomalies(df,metric_name):
+def ClassifyAnomalies(df,metric_name):
     df['metric_name']=metric_name
     df = df.sort_values(by='load_date', ascending=False)
     #Shift actuals by one timestamp to find the percentage chage between current and previous data point
@@ -295,7 +295,7 @@ def main():
             #Get the indexes of outliers in order to compare the metrics     with use case anomalies if required
             ##outliers=test_df.loc[test_df['anomaly']==-1]
             ##outlier_index=list(outliers.index)
-            test_df=classify_anomalies(test_df,metrics_df.columns[i])
+            test_df=ClassifyAnomalies(test_df,metrics_df.columns[i])
             
             #plot_anomaly(test_df,metrics_df.columns[i])
             # Description

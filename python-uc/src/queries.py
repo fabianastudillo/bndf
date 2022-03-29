@@ -12,7 +12,7 @@ def statement_p1_1(gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {"num_hosts": {"cardinality": {"field": "src_ip.keyword"}}},
                 }
@@ -54,7 +54,7 @@ def statement_p1(size, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
                         "sacar_ip": {
@@ -105,10 +105,10 @@ def statement_p2(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "unique_ids": {
@@ -156,10 +156,10 @@ def statement_p3(item, size, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "dnss": {
@@ -212,10 +212,10 @@ def statement_p4(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "tiempos": {
@@ -268,13 +268,13 @@ def statement_p6(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
-                                "Filtro_type": {
+                                "filter_type": {
                                     "filter": {"term": {"dns.rrtype.keyword": "MX"}}
                                 }
                             },
@@ -319,13 +319,13 @@ def statement_p7(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
-                                "Filtro_type": {
+                                "filter_type": {
                                     "filter": {"term": {"dns.rrtype.keyword": "PTR"}}
                                 }
                             },
@@ -370,10 +370,10 @@ def statement_p8(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "unique_ids": {
@@ -421,10 +421,10 @@ def statement_p9(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "unique_ids": {
@@ -471,10 +471,10 @@ def statement_p10(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "unique_ids": {
@@ -521,13 +521,13 @@ def statement_p12(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "answer"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
-                                "Filtro_type": {
+                                "filter_type": {
                                     "filter": {
                                         "term": {"dns.rcode.keyword": "NXDOMAIN"}
                                     }
@@ -574,10 +574,10 @@ def statement_p13(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "answer"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "unique_ids": {
@@ -625,10 +625,10 @@ def statement_p14(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "answer"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "unique_ids": {
@@ -678,13 +678,13 @@ def statement_p15(item, gte, lte):
     query = json.dumps(
         {
             "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "answer"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
-                                "Filtro_type": {
+                                "filter_type": {
                                     "filter": {"term": {"dns.rcode.keyword": "NOERROR"}}
                                 }
                             },
@@ -727,10 +727,10 @@ def statement_pNX0(item, gte, lte):
     query = json.dumps(
         {
           "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "unique_ids": {
@@ -777,10 +777,10 @@ def statement_pNX(item, size, gte, lte):
     query = json.dumps(
         {
           "aggs": {
-                "Filtro_type": {
+                "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "answer"}},
                     "aggs": {
-                        "Filtro_ip": {
+                        "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
                                 "Filtro_NX": {
