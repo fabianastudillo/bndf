@@ -137,7 +137,9 @@ def main():
                             verbose=0)
         clf.fit(metrics_df[to_model_columns])
         # Execute the predictions from data
+
         pred=clf.predict(metrics_df[to_model_columns])
+
         # Create a new column called anomaly
         metrics_df['anomaly']=pred
         # Get all the outliers (-1) from data frame metrics_df
@@ -265,21 +267,29 @@ def main():
         clf=IsolationForest(n_estimators=110, max_samples='auto', contamination='auto',
                             max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
                             verbose=0)
-
         # First column is timestamp
         #index = range(1,len(metrics_df.columns)-1)
 
-        # TODO: Now parameters are save in 12 files, we have to save in one file
-        for i in range(2,len(metrics_df.columns)-1):
+        # TODO: Now parameters are save in 15 files, we have to save in one file
+        # TODO: Verify if the behaviour is different if the training is done using the 15 paramenters
+        #all_df=pd.DataFrame()
+        #to_model_columns=metrics_df.columns[3:18]
+        #clf.fit(metrics_df[to_model_columns])
+        #all_pred = clf.predict(metrics_df[to_model_columns])
+        #all_df['score']=clf.decision_function(metrics_df[to_model_columns])
+        #all_df['actuals']=metrics_df[to_model_columns]
+        #all_df['anomaly']=all_pred
+        #breakpoint()
+        for i in range(3,len(metrics_df.columns)-1):
             clf.fit(metrics_df.iloc[:,i:i+1])
             pred = clf.predict(metrics_df.iloc[:,i:i+1])
             test_df=pd.DataFrame()
 
             #test_df['load_date']=metrics_df['index']
-            #test_df['load_date']=metrics_df['@timestamp']
-            dates = metrics_df['@timestamp']
+            test_df['load_date']=metrics_df['@timestamp']
+            #dates = metrics_df['@timestamp']
             #Find decision function to find the score and classify anomalies
-            ##test_df['score']=clf.decision_function(metrics_df.iloc[:,i:i+1])
+            test_df['score']=clf.decision_function(metrics_df.iloc[:,i:i+1])
             test_df['actuals']=metrics_df.iloc[:,i:i+1]
             test_df['anomaly']=pred
             #Get the indexes of outliers in order to compare the metrics     with use case anomalies if required
@@ -306,17 +316,21 @@ def main():
             #        "P15","Hourly flow rate"]
             #pio.renderers.default='browser'
             ##df.load_date = pd.to_datetime(df['load_date'].astype(str), format="%Y%m%d")
-            #dates = test_df.load_date
+            dates = test_df.load_date
+            records=len(dates)
+            #breakpoint()
+            index=pd.array(range(1,records+1), dtype=np.dtype("int32"))
             #identify the anomaly points and create a array of its values for plot
             bool_array = (abs(test_df['anomaly']) > 0)
             actuals = test_df["actuals"][-len(bool_array):]
             anomaly_points = bool_array * actuals
             anomaly_points[anomaly_points == 0] = np.nan
-            
 
             r = open('/var/log/bndf/anomalies-p' + str(i-1) + '.csv', 'w')
             writer = csv.writer(r)
-            writer.writerows(np.stack([dates,test_df['actuals'],anomaly_points], axis=1))
+            #writer.writerows(np.stack([dates,test_df['actuals'],anomaly_points], axis=1))
+            #breakpoint()
+            writer.writerows(np.stack([index,test_df['actuals'],anomaly_points], axis=1))
             r.close()
 
 

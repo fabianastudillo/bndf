@@ -25,7 +25,7 @@ RUN apt-get update
 RUN apt-get install -y cron
 RUN python -m pip install requests==2.26.0 elasticsearch==7.14.0 pandas==1.3.2 pysocks==1.7.1
 RUN python -m pip install -U scikit-learn
-RUN python -m pip install matplotlib==1.16.0
+RUN python -m pip install matplotlib
 RUN python -m pip install plotly chart_studio
 #RUN chmod +x fingerprint_generator.py
 #CMD [ "python", "./fingerprint_generator.py" ]
