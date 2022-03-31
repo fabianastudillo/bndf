@@ -111,10 +111,10 @@ def main():
     anomalies_filename=r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv'
     full_filename=r'/var/log/bndf/full-' + current_date + '.csv'
 
+    import pandas as pd # data processing
     if args.opt_outliers:
         logging.info("Generate outliers ...")
         warnings.filterwarnings('ignore')
-        import pandas as pd # data processing
 
         # Dataframe list of all entries
         df_list = []
