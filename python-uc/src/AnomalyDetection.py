@@ -157,7 +157,10 @@ def main():
         metrics_df.to_csv(anomalies_filename,index=False)
 
     if exists(full_filename):
-        print("Full anomalies file exists")
+        print("Load full anomalies file ...")
+        df=pd.read_csv(full_filename)
+        df.head()
+        metrics_df=df
         if args.opt_reduce3d:
             # Reduce to k=3 dimensions
             pca = PCA(n_components=3)  
