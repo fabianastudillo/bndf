@@ -8,6 +8,7 @@ Created on Fri Nov 27 17:36:20 2020
 """
 
 import glob, os
+from os.path import exists
 import numpy as np # linear algebra
 #import pandas as pd # data processing
 import warnings
@@ -106,6 +107,8 @@ def main():
     logging.basicConfig(filename='/var/log/bndf.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
     today = date.today()
     current_date = today.strftime("%Y.%m.%d")
+    
+    anomalies_filename=r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv'
 
     if args.opt_outliers:
         logging.info("Generate outliers ...")
@@ -150,66 +153,69 @@ def main():
         #Find the number of anomalies and normal points here points classified -1 are anomalous
         logging.info("Anomalies: " + str(metrics_df['anomaly'].value_counts()))
         ####
-        metrics_df.to_csv(r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv',index=False)
+        metrics_df.to_csv(anomalies_filename,index=False)
 
-    if args.opt_reduce3d:
+    if exists(anomalies_filename):
+        if args.opt_reduce3d:
+            # Reduce to k=3 dimensions
+            pca = PCA(n_components=3)  
+            scaler = StandardScaler()
+            # Normalize the metrics
+            X = scaler.fit_transform(metrics_df[to_model_columns])
+            X_reduce = pca.fit_transform(X)
+            fig = plt.figure()
+            fig.suptitle('DNS_Fingerprints_3D')
+            ax = fig.add_subplot(111, projection='3d')
+            # Plot the compressed data points
+            ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
+            # Plot x's for the ground truth outliers
+            ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier_index,2],
+                    lw=1, s=4, c="red", label="anormal")
+            ax.legend()
 
-        # Reduce to k=3 dimensions
-        pca = PCA(n_components=3)  
-        scaler = StandardScaler()
-        # Normalize the metrics
-        X = scaler.fit_transform(metrics_df[to_model_columns])
-        X_reduce = pca.fit_transform(X)
-        fig = plt.figure()
-        fig.suptitle('DNS_Fingerprints_3D')
-        ax = fig.add_subplot(111, projection='3d')
-        # Plot the compressed data points
-        ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
-        # Plot x's for the ground truth outliers
-        ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier_index,2],
-                lw=1, s=4, c="red", label="anormal")
-        ax.legend()
+            plt.show()
+            fig.savefig("dns_fingerprints_3d-1-" + current_date + ".pdf")
 
-        plt.show()
-        fig.savefig("dns_fingerprints_3d-1-" + current_date + ".pdf")
+            #pca = PCA(n_components=3)  # Reduce to k=3 dimensions
+            #scaler = StandardScaler()
+            #normalize the metrics
+            #X = scaler.fit_transform(metrics_df[to_model_columns])
+            #X_reduce = pca.fit_transform(X)
+            fig = plt.figure()
+            fig.suptitle('DNS_Fingerprints_3D')
+            ax = fig.add_subplot(111, projection='3d')
+            # Plot the compressed data points
+            ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
+            # Plot x's for the ground truth outliers
+            ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier_index,2],
+                    lw=1, s=4, c="red", label="anormal")
+            ax.legend()
+            ax.set_zlim3d(-10,5)
+            ax.set_xlim3d(-3,4)
+            ax.set_ylim3d(0,4)
+            #ax.axis('off')
+            plt.show()
+            fig.savefig("dns_fingerprints_3d-2-" + current_date + ".pdf")
 
-        #pca = PCA(n_components=3)  # Reduce to k=3 dimensions
-        #scaler = StandardScaler()
-        #normalize the metrics
-        #X = scaler.fit_transform(metrics_df[to_model_columns])
-        #X_reduce = pca.fit_transform(X)
-        fig = plt.figure()
-        fig.suptitle('DNS_Fingerprints_3D')
-        ax = fig.add_subplot(111, projection='3d')
-        # Plot the compressed data points
-        ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
-        # Plot x's for the ground truth outliers
-        ax.scatter(X_reduce[outlier_index,0],X_reduce[outlier_index,1], X_reduce[outlier_index,2],
-                lw=1, s=4, c="red", label="anormal")
-        ax.legend()
-        ax.set_zlim3d(-10,5)
-        ax.set_xlim3d(-3,4)
-        ax.set_ylim3d(0,4)
-        #ax.axis('off')
-        plt.show()
-        fig.savefig("dns_fingerprints_3d-2-" + current_date + ".pdf")
+            fig=plt.figure()
 
-        fig=plt.figure()
-
-    if args.opt_reduce2d:
-        pca = PCA(n_components=2)
-        pca.fit(metrics_df[to_model_columns])
-        res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
-        Z = np.array(res)
-        plt.title("DNS_Fingerprints_2D")
-        plt.contourf( Z, cmap=plt.cm.Blues_r)
-        b1 = plt.scatter(res[0], res[1], c='green',
-                        s=20,label="normal")
-        b1 =plt.scatter(res.iloc[outlier_index,0],res.iloc[outlier_index,1], c='red',
-                        s=20,label="anormal")
-        plt.legend(loc="upper right")
-        plt.show()
-        fig.savefig("dns_fingerprint_2d" + current_date + ".pdf")
+        if args.opt_reduce2d:
+            pca = PCA(n_components=2)
+            pca.fit(metrics_df[to_model_columns])
+            res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
+            Z = np.array(res)
+            plt.title("DNS_Fingerprints_2D")
+            plt.contourf( Z, cmap=plt.cm.Blues_r)
+            b1 = plt.scatter(res[0], res[1], c='green',
+                            s=20,label="normal")
+            b1 =plt.scatter(res.iloc[outlier_index,0],res.iloc[outlier_index,1], c='red',
+                            s=20,label="anormal")
+            plt.legend(loc="upper right")
+            plt.show()
+            fig.savefig("dns_fingerprint_2d" + current_date + ".pdf")
+    else:
+        #logging.info("You have to run the script with the generation of outliers option [-o]")
+        print("You have to run the script with the generation of outliers option [-o]")
 
     if args.opt_es:
         from elasticsearch import Elasticsearch
