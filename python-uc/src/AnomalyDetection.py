@@ -109,6 +109,7 @@ def main():
     current_date = today.strftime("%Y.%m.%d")
     
     anomalies_filename=r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv'
+    full_filename=r'/var/log/bndf/full-' + current_date + '.csv'
 
     if args.opt_outliers:
         logging.info("Generate outliers ...")
@@ -121,9 +122,9 @@ def main():
         for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"),)):
             df_list.append(pd.read_csv(filename))
             full_df = pd.concat(df_list)
-            full_df.to_csv('/var/log/bndf/full-' + current_date + '.csv', index=False)
+            full_df.to_csv(full_filename, index=False)
 
-        df=pd.read_csv("/var/log/bndf/full-" + current_date + ".csv")
+        df=pd.read_csv(full_filename)
         df.head()
         metrics_df=df
         logging.info("Number of hosts: " + str(len(set(metrics_df['ip']))))
@@ -155,7 +156,8 @@ def main():
         ####
         metrics_df.to_csv(anomalies_filename,index=False)
 
-    if exists(anomalies_filename):
+    if exists(full_filename):
+        print("Full anomalies file exists")
         if args.opt_reduce3d:
             # Reduce to k=3 dimensions
             pca = PCA(n_components=3)  
