@@ -112,6 +112,7 @@ def main():
     full_filename=r'/var/log/bndf/full-' + current_date + '.csv'
     loadfull=False;
 
+    # TODO: improve the next code, it has redundant code
     import pandas as pd # data processing
     if args.opt_outliers:
         logging.info("Generate outliers ...")
@@ -156,6 +157,7 @@ def main():
         logging.info("Anomalies: " + str(metrics_df['anomaly'].value_counts()))
         ####
         metrics_df.to_csv(anomalies_filename,index=False)
+        loadfull=True
 
     #if exists(full_filename):
     #    print("Load full anomalies file ...")
