@@ -3,7 +3,8 @@
 """
 Created on Mon Nov 16 17:13:27 2020
 
-@author: vicente
+@author: Vicente Quezada
+@modified by: Fabian Astudillo <fabian.astudillos@ucuenca.edu.ec>
 """
 import json
 

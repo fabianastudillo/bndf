@@ -9,7 +9,7 @@ Created on Fri Jan 15 20:55:45 2021
 
 import pandas as pd
 import datetime
-import consultas
+import queries
 import socket
 import socks
 import requests

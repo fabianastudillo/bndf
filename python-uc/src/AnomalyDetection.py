@@ -3,7 +3,8 @@
 """
 Created on Fri Nov 27 17:36:20 2020
 
-@author: vicente
+@author: Vicente Quezada
+@modified by: Fabian Astudillo-Salinas <fabian.astudillos@ucuenca.edu.ec>
 """
 
 import glob, os
@@ -91,9 +92,9 @@ def main():
     parser.add_argument("-o", "--outliers", dest="opt_outliers", action='store_true', required=False,
     help="This option generates the outliers file")
     parser.add_argument("-3", "--reduce3d", dest="opt_reduce3d", action='store_true', required=False,
-    help="Reduce to 3 dimensiones using PCA")
+    help="Reduce to 3 dimensions using PCA")
     parser.add_argument("-2", "--reduce2d", dest="opt_reduce2d", action='store_true', required=False,
-    help="Reduce to 2 dimensiones using PCA")
+    help="Reduce to 2 dimensions using PCA")
     parser.add_argument("-e", "--es", dest="opt_es", action='store_true', required=False,
     help="Upload the anomalies to elasticsearch")
 
@@ -114,7 +115,7 @@ def main():
         # Dataframe list of all entries
         df_list = []
 
-        for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-2021-09-13.csv"))):
+        for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"),)):
             df_list.append(pd.read_csv(filename))
             full_df = pd.concat(df_list)
             full_df.to_csv('/var/log/bndf/full-' + current_date + '.csv', index=False)
@@ -196,7 +197,7 @@ def main():
         fig=plt.figure()
 
     if args.opt_reduce2d:
-        pca = PCA(2)
+        pca = PCA(n_components=2)
         pca.fit(metrics_df[to_model_columns])
         res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
         Z = np.array(res)

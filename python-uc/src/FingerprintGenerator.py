@@ -3,12 +3,12 @@
 """
 Created on Tue Oct  6 09:55:19 2020
 
-This script generate the fingerprint for all the dns packets, from
+This script generate the fingerprint for all the DNS packets, from
 a specific hour of a date. The enter parameters are de date and hour
 to process.
 
 @author: Vicente Quezada
-@author: Fabian Astudillo-Salinas <fabian.astudillos@ucuenca.edu.ec>
+@modified by: Fabian Astudillo-Salinas <fabian.astudillos@ucuenca.edu.ec>
 """
 
 from pathlib import Path
@@ -319,7 +319,7 @@ def main():
     parser.add_argument("-i", "--ip_es", dest="ip_es", required=True,
     help="IP from the elastic search")
     parser.add_argument("-l", "--list_all_indices", dest="list_all_indices", action='store_true', required=False,
-    help="IP from the elastic search")
+    help="List all indices")
 
     #args = vars(ap.parse_args())
     args = parser.parse_args()

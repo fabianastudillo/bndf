@@ -1,5 +1,11 @@
 #!/bin/bash
 
+"""
+Created on Fri Jan 15 17:32:43 2021
+
+@author: Fabian Astudillo-Salinas <fabian.astudillos@ucuenca.edu.ec>
+"""
+
 #indices=`curl -s -X GET 'http://localhost:9200/_cat/indices?v' | awk '$3~/logstash-dns-/{print $3}'`
 
 indices=`curl -s -X GET 'http://localhost:9200/_cat/indices/logstash-dns-*?v=true' | awk 'NR>1{print $3}'`

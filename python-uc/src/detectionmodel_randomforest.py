@@ -3,7 +3,8 @@
 """
 Created on Wed Dec 16 10:10:04 2020
 
-@author: vicente
+@author: Vicente Quezada
+@modified by: Fabian Astudillo <fabian.astudillos@ucuenca.edu.ec>
 """
 
 #Librerías

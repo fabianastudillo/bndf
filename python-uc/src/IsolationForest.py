@@ -3,7 +3,8 @@
 """
 Created on Fri Jan 15 17:32:43 2021
 
-@author: vicente
+@author: Vicente Quezada
+@modified by: Fabian Astudillo-Salinas <fabian.astudillos@ucuenca.edu.ec>
 """
 import pandas as pd # data processing
 import warnings
