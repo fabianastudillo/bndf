@@ -110,6 +110,7 @@ def main():
     
     anomalies_filename=r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv'
     full_filename=r'/var/log/bndf/full-' + current_date + '.csv'
+    loadfull=False;
 
     import pandas as pd # data processing
     if args.opt_outliers:
@@ -156,12 +157,13 @@ def main():
         ####
         metrics_df.to_csv(anomalies_filename,index=False)
 
-    if exists(full_filename):
-        print("Load full anomalies file ...")
-        df=pd.read_csv(full_filename)
-        df.head()
-        metrics_df=df
-        to_model_columns=metrics_df.columns[3:18]
+    #if exists(full_filename):
+    #    print("Load full anomalies file ...")
+    #    df=pd.read_csv(full_filename)
+    #    df.head()
+    #    metrics_df=df
+    #    to_model_columns=metrics_df.columns[3:18]
+    if loadfull:
         if args.opt_reduce3d:
             # Reduce to k=3 dimensions
             pca = PCA(n_components=3)  
