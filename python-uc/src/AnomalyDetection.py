@@ -161,6 +161,7 @@ def main():
         df=pd.read_csv(full_filename)
         df.head()
         metrics_df=df
+        to_model_columns=metrics_df.columns[3:18]
         if args.opt_reduce3d:
             # Reduce to k=3 dimensions
             pca = PCA(n_components=3)  
