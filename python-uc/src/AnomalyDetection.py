@@ -9,7 +9,6 @@ Created on Fri Nov 27 17:36:20 2020
 
 import glob, os
 from os.path import exists
-import numpy as np # linear algebra
 #import pandas as pd # data processing
 import warnings
 from argparse import ArgumentParser
@@ -210,6 +209,7 @@ def main():
             fig=plt.figure()
 
         if args.opt_reduce2d:
+            import numpy as np # linear algebra
             pca = PCA(n_components=2)
             pca.fit(metrics_df[to_model_columns])
             res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
