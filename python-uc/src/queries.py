@@ -58,7 +58,7 @@ def statement_p1(size, gte, lte):
                 "filter_type": {
                     "filter": {"term": {"dns.type.keyword": "query"}},
                     "aggs": {
-                        "sacar_ip": {
+                        "get_ip": {
                             "terms": {
                                 "field": "src_ip.keyword",
                                 "min_doc_count":100,
@@ -219,7 +219,7 @@ def statement_p4(item, gte, lte):
                         "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
-                                "tiempos": {
+                                "times": {
                                     "date_histogram": {
                                         "field": "@timestamp",
                                         "fixed_interval": "1m",

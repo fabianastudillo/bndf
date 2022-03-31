@@ -83,6 +83,27 @@ class FingerprintGenerator:
             logging.info("")
         except Exception as ex:
             raise ex
+        
+    def getHostByHour(self):
+        indexs=1
+        matriz_num_host=[]
+        for indice in self.__dns_indices:
+            hosts_number=[]
+            gte=self.ConvertTime(self.__datestep)
+            lte=self.ConvertTime(self.__datestep+datetime.timedelta(hours=1))
+            
+
+            HEADERS = {
+            'Content-Type': 'application/json'
+            }
+            uri = "http://" + self.__ip_elasticsearch + ":9200/"+indice+"/_search"
+            #number of hosts per hour
+            query=queries.statement_p1_1(gte,lte)
+            r = requests.get(uri,headers=HEADERS, data=query).json()
+            num_host=r["aggregations"]["filter_type"]["num_hosts"]["value"]
+            #print(r)
+            hosts_number.append(num_host)
+            print(hosts_number)
 
     def Generate(self):
 
@@ -154,7 +175,7 @@ class FingerprintGenerator:
                 r = requests.get(uri,headers=HEADERS, data=query).json()
                 ips=[]
 
-                for item in r["aggregations"]["filter_type"]["sacar_ip"]["buckets"]:
+                for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
                     #print(self.__white_list)
                     if (item['key'] in self.__white_list) == False:
                         #print(item['key'])
@@ -191,8 +212,8 @@ class FingerprintGenerator:
                     P4_1=[]
                     query=queries.statement_p4(item,gte,lte)
                     r = requests.get(uri,headers=HEADERS, data=query).json()
-                    if r["aggregations"]["filter_type"]["filter_ip"]["tiempos"]["buckets"]!=[]:       
-                        P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["tiempos"]["buckets"]]
+                    if r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
+                        P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]]
                         P4.append(round(mean(P4_1),4))
                         P5.append(max(P4_1))
                     else:

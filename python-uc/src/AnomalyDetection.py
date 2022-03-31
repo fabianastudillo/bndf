@@ -173,7 +173,7 @@ def main():
             X = scaler.fit_transform(metrics_df[to_model_columns])
             X_reduce = pca.fit_transform(X)
             fig = plt.figure()
-            fig.suptitle('DNS_Fingerprints_3D')
+            fig.suptitle('DNS Fingerprints 3D')
             ax = fig.add_subplot(111, projection='3d')
             # Plot the compressed data points
             ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
@@ -191,7 +191,7 @@ def main():
             #X = scaler.fit_transform(metrics_df[to_model_columns])
             #X_reduce = pca.fit_transform(X)
             fig = plt.figure()
-            fig.suptitle('DNS_Fingerprints_3D')
+            fig.suptitle('DNS Fingerprints 3D')
             ax = fig.add_subplot(111, projection='3d')
             # Plot the compressed data points
             ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], s=4, lw=1, label="normal",c="green")
@@ -215,7 +215,7 @@ def main():
             pca.fit(metrics_df[to_model_columns])
             res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
             Z = np.array(res)
-            plt.title("DNS_Fingerprints_2D")
+            plt.title("DNS Fingerprints 2D")
             plt.contourf( Z, cmap=plt.cm.Blues_r)
             b1 = plt.scatter(res[0], res[1], c='green',
                             s=20,label="normal")
@@ -223,7 +223,7 @@ def main():
                             s=20,label="anormal")
             plt.legend(loc="upper right")
             plt.show()
-            fig.savefig("dns_fingerprint_2d" + current_date + ".pdf")
+            fig.savefig("dns_fingerprints_2d-" + current_date + ".pdf")
     else:
         #logging.info("You have to run the script with the generation of outliers option [-o]")
         print("You have to run the script with the generation of outliers option [-o]")
