@@ -87,6 +87,7 @@ class FingerprintGenerator:
     def getHostByHour(self):
         indexs=1
         matriz_num_host=[]
+        print("Here 1")
         for indice in self.__dns_indices:
             hosts_number=[]
             gte=self.ConvertTime(self.__datestep)
@@ -101,9 +102,10 @@ class FingerprintGenerator:
             query=queries.statement_p1_1(gte,lte)
             r = requests.get(uri,headers=HEADERS, data=query).json()
             num_host=r["aggregations"]["filter_type"]["num_hosts"]["value"]
-            #print(r)
+            print(num_host)
             hosts_number.append(num_host)
             print(hosts_number)
+            print("Here 2")
 
     def Generate(self):
 
@@ -317,7 +319,7 @@ class FingerprintGenerator:
                 df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
                     
             matriz_num_host.append(hosts_number)
-                    
+        print(matriz_num_host)
         M_N_H=np.array(matriz_num_host)
         M_N_H=M_N_H.transpose()
         np.savetxt("/var/log/bndf/num_host-" + self.__datestep.strftime("%Y-%m-%d") + ".csv",M_N_H,fmt="%d",delimiter=",")

@@ -14,19 +14,20 @@ def main():
     #socket.socket = socks.socksocket
 
     #date_from=date.fromisoformat('2021-08-23T00:00:00.000000Z')
-    date_from=dateutil.parser.isoparse('2021-08-23T00:00:00Z')
+    date_from=dateutil.parser.isoparse('2022-03-31T09:00:00Z')
 
-    date_upto=dateutil.parser.isoparse("2021-08-25T16:00:00Z")
+    date_upto=dateutil.parser.isoparse("2022-03-31T10:00:00Z")
     date_offset = date_from
     
     IP_ES = os.getenv('IP_ES')
     if not IP_ES:
-        IP="elasticsearch"
+        IP_ES="elasticsearch"
 
     try:
         fpg = FingerprintGenerator(IP_ES, date_from, "/root/whitelist.txt")
     except Exception as ex:
         logging.info(str(ex))
+        print(str(ex))
 
     #fpg.GetIndices()
     
