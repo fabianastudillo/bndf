@@ -210,6 +210,7 @@ def main():
 
         if args.opt_reduce2d:
             import numpy as np # linear algebra
+            fig = plt.figure()
             pca = PCA(n_components=2)
             pca.fit(metrics_df[to_model_columns])
             res=pd.DataFrame(pca.transform(metrics_df[to_model_columns]))
@@ -218,7 +219,7 @@ def main():
             plt.contourf( Z, cmap=plt.cm.Blues_r)
             b1 = plt.scatter(res[0], res[1], c='green',
                             s=20,label="normal")
-            b1 =plt.scatter(res.iloc[outlier_index,0],res.iloc[outlier_index,1], c='red',
+            b1 = plt.scatter(res.iloc[outlier_index,0],res.iloc[outlier_index,1], c='red',
                             s=20,label="anormal")
             plt.legend(loc="upper right")
             plt.show()
