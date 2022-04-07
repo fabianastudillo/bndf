@@ -87,12 +87,10 @@ class FingerprintGenerator:
     def getHostByHour(self):
         indexs=1
         matriz_num_host=[]
-        print("Here 1")
         for indice in self.__dns_indices:
-            hosts_number=[]
+            #hosts_number=[]
             gte=self.ConvertTime(self.__datestep)
             lte=self.ConvertTime(self.__datestep+datetime.timedelta(hours=1))
-            
 
             HEADERS = {
             'Content-Type': 'application/json'
@@ -102,10 +100,17 @@ class FingerprintGenerator:
             query=queries.statement_p1_1(gte,lte)
             r = requests.get(uri,headers=HEADERS, data=query).json()
             num_host=r["aggregations"]["filter_type"]["num_hosts"]["value"]
-            print(num_host)
-            hosts_number.append(num_host)
-            print(hosts_number)
-            print("Here 2")
+            
+            try:
+                print(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
+            
+                with open('/var/log/bndf/num_host-' + self.__datestep.strftime("%Y-%m-%d") + '.csv', 'a') as f:
+                    f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
+            except Exception as inst:
+                print(type(inst))
+                print(inst.args)
+                print(inst)
+                exit(0)
 
     def Generate(self):
 
@@ -134,6 +139,7 @@ class FingerprintGenerator:
 
         matriz_num_host=[]
         for indice in self.__dns_indices:
+            
             hosts_number=[]
             #indice_date=indice[13:24]
             #print ("Indice: " + indice)
@@ -156,18 +162,30 @@ class FingerprintGenerator:
             gte=self.ConvertTime(self.__datestep)
             lte=self.ConvertTime(self.__datestep+datetime.timedelta(hours=1))
 
+            
+
             HEADERS = {
             'Content-Type': 'application/json'
             }
             uri = "http://" + self.__ip_elasticsearch + ":9200/"+indice+"/_search"
 
             #number of hosts per hour
+            
             query=queries.statement_p1_1(gte,lte)
             r = requests.get(uri,headers=HEADERS, data=query).json()
             num_host=r["aggregations"]["filter_type"]["num_hosts"]["value"]
             #print(r)
-            hosts_number.append(num_host)
-            
+            #hosts_number.append(num_host)
+            try:
+                with open('/var/log/bndf/num_host-' + self.__datestep.strftime("%Y-%m-%d") + '.csv', 'w') as f:
+                    f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
+            except Exception as inst:
+                print(type(inst))
+                print(inst.args)
+                print(inst)
+                exit(0)
+
+            print("Aqui")
             #print("num_host= " + str(num_host))
             if num_host!=0:
                 #Number of DNS requests per hour for each host
@@ -315,14 +333,16 @@ class FingerprintGenerator:
                 df=pd.DataFrame(data,columns=['@timestamp','ip','P1','P2','P3','P4','P5',
                                                 'P6','P7','P8','P9','P10',
                                                 'P11','P12','P13','P14','P15'])
+                print("Save fingerprint ...")
                 path =  '/var/log/bndf/fingerprints-' + self.__datestep.strftime("%Y-%m-%d") + '.csv'
                 df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
+                print("Fingerprint saved")
                     
-            matriz_num_host.append(hosts_number)
-        print(matriz_num_host)
-        M_N_H=np.array(matriz_num_host)
-        M_N_H=M_N_H.transpose()
-        np.savetxt("/var/log/bndf/num_host-" + self.__datestep.strftime("%Y-%m-%d") + ".csv",M_N_H,fmt="%d",delimiter=",")
+            #matriz_num_host.append(hosts_number)
+        #print(matriz_num_host)
+        #M_N_H=np.array(matriz_num_host)
+        #M_N_H=M_N_H.transpose()
+        #np.savetxt("/var/log/bndf/num_host-" + self.__datestep.strftime("%Y-%m-%d") + ".csv",M_N_H,fmt="%d",delimiter=",")
 
         # while True:
         #     i=0
