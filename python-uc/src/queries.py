@@ -23,7 +23,7 @@ def statement_p1_1(gte, lte):
             "script_fields": {},
             "docvalue_fields": [
                 {"field": "@timestamp", "format": "date_time"},
-                {"field": "timestamp", "format": "date_time"},
+                {"field": "@timestamp", "format": "date_time"},
             ],
             "_source": {"excludes": []},
             "query": {
