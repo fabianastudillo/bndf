@@ -99,7 +99,7 @@ class FingerprintGenerator:
             #number of hosts per hour
             query=queries.statement_p1_1(gte,lte)
             r = requests.get(uri,headers=HEADERS, data=query).json()
-            num_host=r["aggs"]["filter_type"]["num_hosts"]["value"]
+            num_host=r["aggregations"]["filter_type"]["num_hosts"]["value"]
             
             try:
                 print(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
@@ -172,7 +172,7 @@ class FingerprintGenerator:
             print("Aqui 2")
             query=queries.statement_p1_1(gte,lte)
             r = requests.get(uri,headers=HEADERS, data=query).json()
-            num_host=r["aggs"]["filter_type"]["num_hosts"]["value"]
+            num_host=r["aggregations"]["filter_type"]["num_hosts"]["value"]
             #print(r)
             #hosts_number.append(num_host)
             try:
@@ -187,7 +187,7 @@ class FingerprintGenerator:
                     r = requests.get(uri,headers=HEADERS, data=query).json()
                     ips=[]
 
-                    for item in r["aggs"]["filter_type"]["get_ip"]["buckets"]:
+                    for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
                         #print(self.__white_list)
                         if (item['key'] in self.__white_list) == False:
                             #print(item['key'])
@@ -203,7 +203,7 @@ class FingerprintGenerator:
                     for item in ips:
                         query=queries.statement_p2(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P2.append(r["aggs"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                     
                     #max requests for a single domain
                     P3=[]
@@ -211,8 +211,8 @@ class FingerprintGenerator:
                         P4_1=[]
                         query=queries.statement_p3(item,item2,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        if r["aggs"]["filter_type"]["filter_ip"]["dnss"]["buckets"] != []:
-                            P3.append(r["aggs"]["filter_type"]["filter_ip"]["dnss"]["buckets"][0]["doc_count"])
+                        if r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"] != []:
+                            P3.append(r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"][0]["doc_count"])
                         else:
                             P3.append(0)
                     
@@ -224,8 +224,8 @@ class FingerprintGenerator:
                         P4_1=[]
                         query=queries.statement_p4(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        if r["aggs"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
-                            P4_1=[item1['doc_count'] for item1 in r["aggs"]["filter_type"]["filter_ip"]["times"]["buckets"]]
+                        if r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
+                            P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]]
                             P4.append(round(mean(P4_1),4))
                             P5.append(max(P4_1))
                         else:
@@ -237,35 +237,35 @@ class FingerprintGenerator:
                     for item in ips:
                         query=queries.statement_p6(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P6.append(r["aggs"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                     
                     #PTR per hour
                     P7=[]
                     for item in ips:
                         query=queries.statement_p7(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P7.append(r["aggs"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                     
                     # num different servers consulted per hour
                     P8=[]
                     for item in ips:
                         query=queries.statement_p8(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P8.append(r["aggs"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                     
                     # TLD consulted per hour
                     P9=[] 
                     for item in ips:
                         query=queries.statement_p9(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P9.append(r["aggs"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
 
                     # SLD queried per hour
                     P10=[]
                     for item in ips:
                         query=queries.statement_p10(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P10.append(r["aggs"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                             
                     # Uniqueness ratio per hour
                     P11=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P1,P2)]
@@ -275,28 +275,28 @@ class FingerprintGenerator:
                     for item in ips:
                         query=queries.statement_p12(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P12.append(r["aggs"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                     
                     #num different cities per hour
                     P13=[]
                     for item in ips:
                         query=queries.statement_p13(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P13.append(r["aggs"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                         
                     #num different countries per hour
                     P14=[]
                     for item in ips:
                         query=queries.statement_p14(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P14.append(r["aggs"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                     
                     #flow rate per hour
                     P15=[]
                     for item in ips:
                         query=queries.statement_p15(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P15.append(r["aggs"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                     P15=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P2,P15)]
                     
                     #print(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P15)
