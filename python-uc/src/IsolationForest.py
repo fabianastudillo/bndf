@@ -20,12 +20,14 @@ warnings.filterwarnings('ignore')
 
 df_list = []
 
+print("Join fingerprint files ...")
 for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
     print(filename)
     df_list.append(pd.read_csv(filename))
     full_df = pd.concat(df_list)
     full_df.to_csv('/var/log/bndf/full.csv', index=False)
 
+print("Processing ...")
 df=pd.read_csv("/var/log/bndf/full.csv")
 df.head()
 metrics_df=df

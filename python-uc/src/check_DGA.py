@@ -162,13 +162,13 @@ for item in outliers['index']:
     
     query=consultas.statement_pNX0(ip_time[0],gte.strftime("%Y-%m-%dT%H:%M:%SZ"),lte)
     r = requests.get(uri,headers=HEADERS, data=query).json()
-    num_sitios=r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"]
+    num_sitios=r["aggs"]["filter_type"]["filter_ip"]["unique_ids"]["value"]
     if num_sitios>65000:
         num_sitios=65000
     if num_sitios!=0:       
         query=consultas.statement_pNX(ip_time[0],num_sitios,gte.strftime("%Y-%m-%dT%H:%M:%SZ"),lte)
         r = requests.get(uri,headers=HEADERS, data=query).json()
-        P9_1=[item['key'].rsplit(sep='.',maxsplit=2) for item in r["aggregations"]["filter_type"]["filter_ip"]["Filtro_NX"]["Filtro_dls"]["buckets"]]
+        P9_1=[item['key'].rsplit(sep='.',maxsplit=2) for item in r["aggs"]["filter_type"]["filter_ip"]["Filtro_NX"]["Filtro_dls"]["buckets"]]
         sitios=[row[1]+"."+row[2] if len(row)>2 else row[0]+"."+row[1] if len(row)==2 else row[0] for row in P9_1]
         sitios=set(sitios)
     
