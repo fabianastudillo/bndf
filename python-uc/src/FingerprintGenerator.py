@@ -139,7 +139,6 @@ class FingerprintGenerator:
 
         matriz_num_host=[]
         for indice in self.__dns_indices:
-            
             hosts_number=[]
             #indice_date=indice[13:24]
             #print ("Indice: " + indice)
@@ -170,7 +169,7 @@ class FingerprintGenerator:
             uri = "http://" + self.__ip_elasticsearch + ":9200/"+indice+"/_search"
 
             #number of hosts per hour
-            
+            print("Aqui 2")
             query=queries.statement_p1_1(gte,lte)
             r = requests.get(uri,headers=HEADERS, data=query).json()
             num_host=r["aggregations"]["filter_type"]["num_hosts"]["value"]
@@ -179,15 +178,8 @@ class FingerprintGenerator:
             try:
                 with open('/var/log/bndf/num_host-' + self.__datestep.strftime("%Y-%m-%d") + '.csv', 'w') as f:
                     f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
-            except Exception as inst:
-                print(type(inst))
-                print(inst.args)
-                print(inst)
-                exit(0)
-
-            print("Aqui")
             #print("num_host= " + str(num_host))
-            if num_host!=0:
+                if num_host!=0:
                 #Number of DNS requests per hour for each host
                 #Considering that each host has made a minimum of 100 requests
                 P1=[] 
@@ -337,7 +329,13 @@ class FingerprintGenerator:
                 path =  '/var/log/bndf/fingerprints-' + self.__datestep.strftime("%Y-%m-%d") + '.csv'
                 df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
                 print("Fingerprint saved")
-                    
+            except Exception as inst:
+                print("Aqui")
+                print(type(inst))
+                print(inst.args)
+                print(inst)
+                exit(0)
+
             #matriz_num_host.append(hosts_number)
         #print(matriz_num_host)
         #M_N_H=np.array(matriz_num_host)
