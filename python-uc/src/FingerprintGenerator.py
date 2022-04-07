@@ -180,155 +180,155 @@ class FingerprintGenerator:
                     f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
             #print("num_host= " + str(num_host))
                 if num_host!=0:
-                #Number of DNS requests per hour for each host
-                #Considering that each host has made a minimum of 100 requests
-                P1=[] 
-                query=queries.statement_p1(num_host,gte,lte)
-                r = requests.get(uri,headers=HEADERS, data=query).json()
-                ips=[]
+                    #Number of DNS requests per hour for each host
+                    #Considering that each host has made a minimum of 100 requests
+                    P1=[] 
+                    query=queries.statement_p1(num_host,gte,lte)
+                    r = requests.get(uri,headers=HEADERS, data=query).json()
+                    ips=[]
 
-                for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
-                    #print(self.__white_list)
-                    if (item['key'] in self.__white_list) == False:
-                        #print(item['key'])
-                        ips.append(item['key'])
-                        P1.append(item['doc_count'])
-                    
-                P1_1=[]
-                for i in range(len(P1)):
-                    P1_1.append(gte)
-                
-                #number of dns requests per hour
-                P2=[]
-                for item in ips:
-                    query=queries.statement_p2(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                
-                #max requests for a single domain
-                P3=[]
-                for item,item2 in zip(ips,P2):
-                    P4_1=[]
-                    query=queries.statement_p3(item,item2,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    if r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"] != []:
-                        P3.append(r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"][0]["doc_count"])
-                    else:
-                        P3.append(0)
-                
-                #average requests per minute
-                P4=[]
-                #highest number of requests per minute
-                P5=[]
-                for item  in ips:
-                    P4_1=[]
-                    query=queries.statement_p4(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    if r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
-                        P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]]
-                        P4.append(round(mean(P4_1),4))
-                        P5.append(max(P4_1))
-                    else:
-                        P4.append(0)
-                        P5.append(0)    
-
-                #MX per hour
-                P6=[]
-                for item in ips:
-                    query=queries.statement_p6(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
-                
-                #PTR per hour
-                P7=[]
-                for item in ips:
-                    query=queries.statement_p7(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
-                
-                # num different servers consulted per hour
-                P8=[]
-                for item in ips:
-                    query=queries.statement_p8(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                
-                # TLD consulted per hour
-                P9=[] 
-                for item in ips:
-                    query=queries.statement_p9(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-
-                # SLD queried per hour
-                P10=[]
-                for item in ips:
-                    query=queries.statement_p10(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                    for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
+                        #print(self.__white_list)
+                        if (item['key'] in self.__white_list) == False:
+                            #print(item['key'])
+                            ips.append(item['key'])
+                            P1.append(item['doc_count'])
                         
-                # Uniqueness ratio per hour
-                P11=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P1,P2)]
-                
-                #NXDOMAIN per hour
-                P12=[]
-                for item in ips:
-                    query=queries.statement_p12(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
-                
-                #num different cities per hour
-                P13=[]
-                for item in ips:
-                    query=queries.statement_p13(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                    P1_1=[]
+                    for i in range(len(P1)):
+                        P1_1.append(gte)
                     
-                #num different countries per hour
-                P14=[]
-                for item in ips:
-                    query=queries.statement_p14(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                
-                #flow rate per hour
-                P15=[]
-                for item in ips:
-                    query=queries.statement_p15(item,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
-                P15=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P2,P15)]
-                
-                #print(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P15)
-                """
-                datos_finales=[["@timestamp",time,
-                                "ip",ip,"p1",p1,"p2",p2,"p3",p3,"p4",p4,"p5",p5,
-                                "p6",p6,"p7",p7,"p8",p8,"p9",p9,"p10",p10,"p11",
-                                p11,"p12",p12,"p13",p13,"p14",p14,"p15",p15] 
-                                for time,ip,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15 
-                                in zip(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P13,P14,P15)]
-                        
-                datos_finales_json=[Convert(item) for item in datos_finales]
+                    #number of dns requests per hour
+                    P2=[]
+                    for item in ips:
+                        query=queries.statement_p2(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                    
+                    #max requests for a single domain
+                    P3=[]
+                    for item,item2 in zip(ips,P2):
+                        P4_1=[]
+                        query=queries.statement_p3(item,item2,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        if r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"] != []:
+                            P3.append(r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"][0]["doc_count"])
+                        else:
+                            P3.append(0)
+                    
+                    #average requests per minute
+                    P4=[]
+                    #highest number of requests per minute
+                    P5=[]
+                    for item  in ips:
+                        P4_1=[]
+                        query=queries.statement_p4(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        if r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
+                            P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]]
+                            P4.append(round(mean(P4_1),4))
+                            P5.append(max(P4_1))
+                        else:
+                            P4.append(0)
+                            P5.append(0)    
 
-                for item in datos_finales_json:
-                    res=es.index(index='fingerprints',doc_type='fingerprints',id=ii,body=item)
-                    ii=ii+1
-                """
+                    #MX per hour
+                    P6=[]
+                    for item in ips:
+                        query=queries.statement_p6(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                     
-                index_array=[j for j in range(indexs,indexs+len(P1))]
-                indexs=indexs+len(P1)
+                    #PTR per hour
+                    P7=[]
+                    for item in ips:
+                        query=queries.statement_p7(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                     
-                data={"@timestamp":P1_1,"ip":ips,'P1':P1,'P2':P2,'P3':P3,'P4':P4,'P5':P5,
-                        'P6':P6,'P7':P7,'P8':P8,'P9':P9,'P10':P10,
-                        'P11':P11,'P12':P12,'P13':P13,'P14':P14,'P15':P15}
-                
-                df=pd.DataFrame(data,columns=['@timestamp','ip','P1','P2','P3','P4','P5',
-                                                'P6','P7','P8','P9','P10',
-                                                'P11','P12','P13','P14','P15'])
-                print("Save fingerprint ...")
-                path =  '/var/log/bndf/fingerprints-' + self.__datestep.strftime("%Y-%m-%d") + '.csv'
-                df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
-                print("Fingerprint saved")
+                    # num different servers consulted per hour
+                    P8=[]
+                    for item in ips:
+                        query=queries.statement_p8(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                    
+                    # TLD consulted per hour
+                    P9=[] 
+                    for item in ips:
+                        query=queries.statement_p9(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+
+                    # SLD queried per hour
+                    P10=[]
+                    for item in ips:
+                        query=queries.statement_p10(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                            
+                    # Uniqueness ratio per hour
+                    P11=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P1,P2)]
+                    
+                    #NXDOMAIN per hour
+                    P12=[]
+                    for item in ips:
+                        query=queries.statement_p12(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                    
+                    #num different cities per hour
+                    P13=[]
+                    for item in ips:
+                        query=queries.statement_p13(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        
+                    #num different countries per hour
+                    P14=[]
+                    for item in ips:
+                        query=queries.statement_p14(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                    
+                    #flow rate per hour
+                    P15=[]
+                    for item in ips:
+                        query=queries.statement_p15(item,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                    P15=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P2,P15)]
+                    
+                    #print(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P15)
+                    """
+                    datos_finales=[["@timestamp",time,
+                                    "ip",ip,"p1",p1,"p2",p2,"p3",p3,"p4",p4,"p5",p5,
+                                    "p6",p6,"p7",p7,"p8",p8,"p9",p9,"p10",p10,"p11",
+                                    p11,"p12",p12,"p13",p13,"p14",p14,"p15",p15] 
+                                    for time,ip,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15 
+                                    in zip(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P13,P14,P15)]
+                            
+                    datos_finales_json=[Convert(item) for item in datos_finales]
+
+                    for item in datos_finales_json:
+                        res=es.index(index='fingerprints',doc_type='fingerprints',id=ii,body=item)
+                        ii=ii+1
+                    """
+                        
+                    index_array=[j for j in range(indexs,indexs+len(P1))]
+                    indexs=indexs+len(P1)
+                        
+                    data={"@timestamp":P1_1,"ip":ips,'P1':P1,'P2':P2,'P3':P3,'P4':P4,'P5':P5,
+                            'P6':P6,'P7':P7,'P8':P8,'P9':P9,'P10':P10,
+                            'P11':P11,'P12':P12,'P13':P13,'P14':P14,'P15':P15}
+                    
+                    df=pd.DataFrame(data,columns=['@timestamp','ip','P1','P2','P3','P4','P5',
+                                                    'P6','P7','P8','P9','P10',
+                                                    'P11','P12','P13','P14','P15'])
+                    print("Save fingerprint ...")
+                    path =  '/var/log/bndf/fingerprints-' + self.__datestep.strftime("%Y-%m-%d") + '.csv'
+                    df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
+                    print("Fingerprint saved")
             except Exception as inst:
                 print("Aqui")
                 print(type(inst))
