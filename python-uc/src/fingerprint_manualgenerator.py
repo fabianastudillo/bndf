@@ -14,11 +14,24 @@ def main():
     #socket.socket = socks.socksocket
 
     #date_from=date.fromisoformat('2021-08-23T00:00:00.000000Z')
-    date_from=dateutil.parser.isoparse('2022-03-29T00:00:00Z')
+    date_from=dateutil.parser.isoparse('2022-04-01T07:00:00Z')
 
-    date_upto=dateutil.parser.isoparse("2022-03-30T00:00:00Z")
+    date_upto=dateutil.parser.isoparse("2022-04-01T08:00:00Z")
     date_offset = date_from
-    
+    #logging.basicConfig(filename='/var/log/fingerprint.log', level=logging.DEBUG)
+    #logging.basicConfig(encoding='utf-8', format='%(levelname)s:%(message)s', level=logging.INFO)
+    #logging.basicConfig(filename='/var/log/bndf/fingerprints.log', level=logging.INFO)
+    logging.basicConfig(filename='/var/log/bndf.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    # add the handler to the root logger
+    logging.getLogger(__name__).addHandler(console)
+    logging.info('Start ---- ')
+    #logger = logging.getLogger(__name__)
+    #logger.setLevel(logging.INFO)
+    #logging.getLogger().setLevel(logging.INFO)
+    #logging.setLevel(logging.INFO)
     IP_ES = os.getenv('IP_ES')
     if not IP_ES:
         IP_ES="elasticsearch"
@@ -29,12 +42,13 @@ def main():
     except Exception as ex:
         logging.info(str(ex))
         print(str(ex))
+        exit(0)
 
     #fpg.GetIndices()
     
     while (date_offset < date_upto):
         try:
-            print("Setting dates: ")
+            print("Setting dates: " + date_offset.strftime("%Y-%m-%d; %H:%M:%S"))
             fpg.SetDatestep(date_offset)
             print("Generating fingerprints ...")
             fpg.Generate()
