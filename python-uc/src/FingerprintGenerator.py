@@ -32,7 +32,7 @@ class FingerprintGenerator:
     """This class generates the fingerprints"""
 
     def __init__(self, ip_elasticsearch, datestep, fn_whitelist):
-        logging.basicConfig(filename='/var/log/bndf/fingerprints.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(filename='/var/log/bndf/fingerprints.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
         #self.logger = logging.getLogger(__name__)
         #console = logging.StreamHandler()
         #console.setLevel(logging.DEBUG)
