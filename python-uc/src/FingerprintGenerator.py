@@ -398,8 +398,8 @@ class FingerprintGenerator:
                     logging.info("Fingerprint saved")
             except Exception as inst:
                 #TODO: manage this error {'error': {'root_cause': [{'type': 'circuit_breaking_exception', 'reason': '[parent] Data too large, data for [<reused_arrays>] would be [511424472/487.7mb], which is larger than the limit of [510027366/486.3mb], real usage: [500220696/477mb], new bytes reserved: [11203776/10.6mb], usages [request=11222208/10.7mb, fielddata=24381797/23.2mb, in_flight_requests=1378/1.3kb, model_inference=0/0b, eql_sequence=0/0b, accounting=8138920/7.7mb]', 'bytes_wanted': 511424472, 'bytes_limit': 510027366, 'durability': 'PERMANENT'}], 'type': 'search_phase_execution_exception', 'reason': 'all shards failed', 'phase': 'query', 'grouped': True, 'failed_shards': [{'shard': 0, 'index': 'logstash-dns-2022.04.01', 'node': 'IFUMFOfcSXGOsS40NdgGjA', 'reason': {'type': 'circuit_breaking_exception', 'reason': '[parent] Data too large, data for [<reused_arrays>] would be [511424472/487.7mb], which is larger than the limit of [510027366/486.3mb], real usage: [500220696/477mb], new bytes reserved: [11203776/10.6mb], usages [request=11222208/10.7mb, fielddata=24381797/23.2mb, in_flight_requests=1378/1.3kb, model_inference=0/0b, eql_sequence=0/0b, accounting=8138920/7.7mb]', 'bytes_wanted': 511424472, 'bytes_limit': 510027366, 'durability': 'PERMANENT'}}]}, 'status': 429}
-	        # TODO: Agregar error de manera correcta
-                logging.warning("Fingerprint not generated for "+self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+ "-------|" + r)
+	            #TODO: Agregar error de manera correcta
+                #logging.warning("Fingerprint not generated for "+self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+ "-------|" + r)
                 print(type(inst))
                 print(inst.args)
                 print(inst)
