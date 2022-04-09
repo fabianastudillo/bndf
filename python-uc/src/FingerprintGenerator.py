@@ -185,17 +185,21 @@ class FingerprintGenerator:
                 if num_host!=0:
                     #Number of DNS requests per hour for each host
                     #Considering that each host has made a minimum of 100 requests
-                    P1=[] 
-                    query=queries.statement_p1(num_host,gte,lte)
-                    r = requests.get(uri,headers=HEADERS, data=query).json()
-                    ips=[]
-                    logging.info("Get P1")
-                    for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
-                        #print(self.__white_list)
-                        if (item['key'] in self.__white_list) == False:
-                            #print(item['key'])
-                            ips.append(item['key'])
-                            P1.append(item['doc_count'])
+                    P1=[]
+                    try:
+                        query=queries.statement_p1(num_host,gte,lte)
+                        r = requests.get(uri,headers=HEADERS, data=query).json()
+                        ips=[]
+                        logging.info("Get P1")
+                        for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
+                            #print(self.__white_list)
+                            if (item['key'] in self.__white_list) == False:
+                                #print(item['key'])
+                                ips.append(item['key'])
+                                P1.append(item['doc_count'])
+                    except Exception as inst:
+                        logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                        exit(0)
                         
                     P1_1=[]
                     for i in range(len(P1)):
@@ -205,22 +209,30 @@ class FingerprintGenerator:
                     P2=[]
                     logging.info("Get P2")
                     for item in ips:
-                        query=queries.statement_p2(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        try:
+                            query=queries.statement_p2(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
                     
                     #max requests for a single domain
                     P3=[]
                     logging.info("Get P3")
                     for item,item2 in zip(ips,P2):
                         P4_1=[]
-                        query=queries.statement_p3(item,item2,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        if r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"] != []:
-                            P3.append(r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"][0]["doc_count"])
-                        else:
-                            P3.append(0)
-                    
+                        try:
+                            query=queries.statement_p3(item,item2,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            if r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"] != []:
+                                P3.append(r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"][0]["doc_count"])
+                            else:
+                                P3.append(0)
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
+
                     #average requests per minute
                     P4=[]
                     #highest number of requests per minute
@@ -228,55 +240,79 @@ class FingerprintGenerator:
                     logging.info("Get P4 and P5")
                     for item  in ips:
                         P4_1=[]
-                        query=queries.statement_p4(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        if r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
-                            P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]]
-                            P4.append(round(mean(P4_1),4))
-                            P5.append(max(P4_1))
-                        else:
-                            P4.append(0)
-                            P5.append(0)    
+                        try:
+                            query=queries.statement_p4(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            if r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
+                                P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]]
+                                P4.append(round(mean(P4_1),4))
+                                P5.append(max(P4_1))
+                            else:
+                                P4.append(0)
+                                P5.append(0)
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
 
                     #MX per hour
                     P6=[]
                     logging.info("Get P6")
                     for item in ips:
-                        query=queries.statement_p6(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        try:
+                            query=queries.statement_p6(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
                     
                     #PTR per hour
                     P7=[]
                     logging.info("Get P7")
                     for item in ips:
-                        query=queries.statement_p7(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        try:
+                            query=queries.statement_p7(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
                     
                     # num different servers consulted per hour
                     P8=[]
                     logging.info("Get P8")
                     for item in ips:
-                        query=queries.statement_p8(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        try:
+                            query=queries.statement_p8(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
                     
                     # TLD consulted per hour
                     P9=[] 
                     logging.info("Get P9")
                     for item in ips:
-                        query=queries.statement_p9(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        try:
+                            query=queries.statement_p9(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
 
                     # SLD queried per hour
                     P10=[]
                     logging.info("Get P10")
                     for item in ips:
-                        query=queries.statement_p10(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        try:
+                            query=queries.statement_p10(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
                             
                     # Uniqueness ratio per hour
                     P11=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P1,P2)]
@@ -285,33 +321,50 @@ class FingerprintGenerator:
                     P12=[]
                     logging.info("Get P12")
                     for item in ips:
-                        query=queries.statement_p12(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        try:
+                            query=queries.statement_p12(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
                     
                     #num different cities per hour
                     P13=[]
                     logging.info("Get P13")
                     for item in ips:
-                        query=queries.statement_p13(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        try:
+                            query=queries.statement_p13(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
                         
                     #num different countries per hour
                     P14=[]
                     logging.info("Get P14")
                     for item in ips:
-                        query=queries.statement_p14(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        try:
+                            query=queries.statement_p14(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
                     
                     #flow rate per hour
                     P15=[]
                     logging.info("Get P15")
                     for item in ips:
-                        query=queries.statement_p15(item,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        try:
+                            query=queries.statement_p15(item,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                        except Exception as inst:
+                            logging.warning(type(inst) + " | " + inst.args + " | " + inst)
+                            exit(0)
+
                     P15=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P2,P15)]
                     
                     #print(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P15)
