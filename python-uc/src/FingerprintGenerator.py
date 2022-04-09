@@ -33,7 +33,7 @@ class FingerprintGenerator:
 
     def __init__(self, ip_elasticsearch, datestep, fn_whitelist):
         logging.basicConfig(filename='/var/log/bndf/fingerprints.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        self.logger = logging.getLogger(__name__)
+        #self.logger = logging.getLogger(__name__)
         #console = logging.StreamHandler()
         #console.setLevel(logging.DEBUG)
         # add the handler to the root logger
@@ -46,7 +46,7 @@ class FingerprintGenerator:
 
         self.__output_dir.mkdir(parents=True, exist_ok=True)
         
-        self.logger.info("Fingerprint Generator")
+        logging.info("Fingerprint Generator")
         if (fn_whitelist and os.path.exists(fn_whitelist)):
             with open(fn_whitelist) as f:
                 print ("Open white list")
@@ -81,13 +81,14 @@ class FingerprintGenerator:
         self.__datestep=datestep
         #list existing DNS indexes
         self.__dns_indices=[]
-        self.logger.info("- Loading the indices from elasticsearh")
-        self.logger.info("- The loaded indices are ", end = '')
+        logging.info("- Loading the indices from elasticsearh")
+        logging.info("- The loaded indices are ", end = '')
         try:
             for index in self.__elasticsearch.indices.get('logstash-dns-' + self.__datestep.strftime("%Y.%m.%d")):
-                self.logger.info(index, end = ',')
+                #logging.info(index, end = ',')
+                logging.info(index)
                 self.__dns_indices.append(index)
-            self.logger.info("")
+            logging.info("")
         except Exception as ex:
             raise ex
         
@@ -175,7 +176,7 @@ class FingerprintGenerator:
             uri = "http://" + self.__ip_elasticsearch + ":9200/"+indice+"/_search"
 
             #number of hosts per hour
-            self.logger.info("Get Number of hosts")
+            logging.info("Get Number of hosts")
             query=queries.statement_p1_1(gte,lte)
             r = requests.get(uri,headers=HEADERS, data=query).json()
             num_host=r["aggregations"]["filter_type"]["num_hosts"]["value"]
@@ -192,7 +193,7 @@ class FingerprintGenerator:
                     query=queries.statement_p1(num_host,gte,lte)
                     r = requests.get(uri,headers=HEADERS, data=query).json()
                     ips=[]
-                    self.logger.info("Get P1")
+                    logging.info("Get P1")
                     for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
                         #print(self.__white_list)
                         if (item['key'] in self.__white_list) == False:
@@ -206,7 +207,7 @@ class FingerprintGenerator:
                     
                     #number of dns requests per hour
                     P2=[]
-                    self.logger.info("Get P2")
+                    logging.info("Get P2")
                     for item in ips:
                         query=queries.statement_p2(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -214,7 +215,7 @@ class FingerprintGenerator:
                     
                     #max requests for a single domain
                     P3=[]
-                    self.logger.info("Get P3")
+                    logging.info("Get P3")
                     for item,item2 in zip(ips,P2):
                         P4_1=[]
                         query=queries.statement_p3(item,item2,gte,lte)
@@ -228,7 +229,7 @@ class FingerprintGenerator:
                     P4=[]
                     #highest number of requests per minute
                     P5=[]
-                    self.logger.info("Get P4 and P5")
+                    logging.info("Get P4 and P5")
                     for item  in ips:
                         P4_1=[]
                         query=queries.statement_p4(item,gte,lte)
@@ -243,7 +244,7 @@ class FingerprintGenerator:
 
                     #MX per hour
                     P6=[]
-                    self.logger.info("Get P6")
+                    logging.info("Get P6")
                     for item in ips:
                         query=queries.statement_p6(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -251,7 +252,7 @@ class FingerprintGenerator:
                     
                     #PTR per hour
                     P7=[]
-                    self.logger.info("Get P7")
+                    logging.info("Get P7")
                     for item in ips:
                         query=queries.statement_p7(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -259,7 +260,7 @@ class FingerprintGenerator:
                     
                     # num different servers consulted per hour
                     P8=[]
-                    self.logger.info("Get P8")
+                    logging.info("Get P8")
                     for item in ips:
                         query=queries.statement_p8(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -267,7 +268,7 @@ class FingerprintGenerator:
                     
                     # TLD consulted per hour
                     P9=[] 
-                    self.logger.info("Get P9")
+                    logging.info("Get P9")
                     for item in ips:
                         query=queries.statement_p9(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -275,7 +276,7 @@ class FingerprintGenerator:
 
                     # SLD queried per hour
                     P10=[]
-                    self.logger.info("Get P10")
+                    logging.info("Get P10")
                     for item in ips:
                         query=queries.statement_p10(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -286,7 +287,7 @@ class FingerprintGenerator:
                     
                     #NXDOMAIN per hour
                     P12=[]
-                    self.logger.info("Get P12")
+                    logging.info("Get P12")
                     for item in ips:
                         query=queries.statement_p12(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -294,7 +295,7 @@ class FingerprintGenerator:
                     
                     #num different cities per hour
                     P13=[]
-                    self.logger.info("Get P13")
+                    logging.info("Get P13")
                     for item in ips:
                         query=queries.statement_p13(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -302,7 +303,7 @@ class FingerprintGenerator:
                         
                     #num different countries per hour
                     P14=[]
-                    self.logger.info("Get P14")
+                    logging.info("Get P14")
                     for item in ips:
                         query=queries.statement_p14(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -310,7 +311,7 @@ class FingerprintGenerator:
                     
                     #flow rate per hour
                     P15=[]
-                    self.logger.info("Get P15")
+                    logging.info("Get P15")
                     for item in ips:
                         query=queries.statement_p15(item,gte,lte)
                         r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -342,10 +343,10 @@ class FingerprintGenerator:
                     df=pd.DataFrame(data,columns=['@timestamp','ip','P1','P2','P3','P4','P5',
                                                     'P6','P7','P8','P9','P10',
                                                     'P11','P12','P13','P14','P15'])
-                    self.logger.info("Save fingerprint ...")
+                    logging.info("Save fingerprint ...")
                     path =  '/var/log/bndf/fingerprints-' + self.__datestep.strftime("%Y-%m-%d") + '.csv'
                     df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
-                    self.logger.info("Fingerprint saved")
+                    logging.info("Fingerprint saved")
             except Exception as inst:
                 #TODO: manage this error {'error': {'root_cause': [{'type': 'circuit_breaking_exception', 'reason': '[parent] Data too large, data for [<reused_arrays>] would be [511424472/487.7mb], which is larger than the limit of [510027366/486.3mb], real usage: [500220696/477mb], new bytes reserved: [11203776/10.6mb], usages [request=11222208/10.7mb, fielddata=24381797/23.2mb, in_flight_requests=1378/1.3kb, model_inference=0/0b, eql_sequence=0/0b, accounting=8138920/7.7mb]', 'bytes_wanted': 511424472, 'bytes_limit': 510027366, 'durability': 'PERMANENT'}], 'type': 'search_phase_execution_exception', 'reason': 'all shards failed', 'phase': 'query', 'grouped': True, 'failed_shards': [{'shard': 0, 'index': 'logstash-dns-2022.04.01', 'node': 'IFUMFOfcSXGOsS40NdgGjA', 'reason': {'type': 'circuit_breaking_exception', 'reason': '[parent] Data too large, data for [<reused_arrays>] would be [511424472/487.7mb], which is larger than the limit of [510027366/486.3mb], real usage: [500220696/477mb], new bytes reserved: [11203776/10.6mb], usages [request=11222208/10.7mb, fielddata=24381797/23.2mb, in_flight_requests=1378/1.3kb, model_inference=0/0b, eql_sequence=0/0b, accounting=8138920/7.7mb]', 'bytes_wanted': 511424472, 'bytes_limit': 510027366, 'durability': 'PERMANENT'}}]}, 'status': 429}
 	        # TODO: Agregar error de manera correcta
