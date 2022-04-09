@@ -199,6 +199,7 @@ class FingerprintGenerator:
                                 P1.append(item['doc_count'])
                     except Exception as inst:
                         logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                        print(r)
                         exit(0)
                         
                     P1_1=[]
@@ -215,6 +216,7 @@ class FingerprintGenerator:
                             P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
                     
                     #max requests for a single domain
@@ -231,6 +233,7 @@ class FingerprintGenerator:
                                 P3.append(0)
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
 
                     #average requests per minute
@@ -252,6 +255,7 @@ class FingerprintGenerator:
                                 P5.append(0)
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
 
                     #MX per hour
@@ -264,6 +268,7 @@ class FingerprintGenerator:
                             P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
                     
                     #PTR per hour
@@ -276,6 +281,7 @@ class FingerprintGenerator:
                             P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
                     
                     # num different servers consulted per hour
@@ -288,6 +294,7 @@ class FingerprintGenerator:
                             P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
                     
                     # TLD consulted per hour
@@ -300,6 +307,7 @@ class FingerprintGenerator:
                             P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
 
                     # SLD queried per hour
@@ -312,6 +320,7 @@ class FingerprintGenerator:
                             P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
                             
                     # Uniqueness ratio per hour
@@ -327,6 +336,7 @@ class FingerprintGenerator:
                             P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
                     
                     #num different cities per hour
@@ -339,6 +349,7 @@ class FingerprintGenerator:
                             P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
                         
                     #num different countries per hour
@@ -351,6 +362,7 @@ class FingerprintGenerator:
                             P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
                     
                     #flow rate per hour
@@ -363,6 +375,7 @@ class FingerprintGenerator:
                             P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
                         except Exception as inst:
                             logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            print(r)
                             exit(0)
 
                     P15=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P2,P15)]
