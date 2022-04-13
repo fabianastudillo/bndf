@@ -34,7 +34,7 @@ class FingerprintGenerator:
     def __init__(self, ip_elasticsearch, datestep, fn_whitelist):
        # logging.basicConfig(filename='/var/log/bndf/fingerprints.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
 
-        self.retries=10
+        self.retries=1000
         self.__ip_elasticsearch=ip_elasticsearch
         self.__white_list=[ ]
 
@@ -238,12 +238,11 @@ class FingerprintGenerator:
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
-                                    if (r["error"]["type"]=="search_phase_execution_exception"):
-                                        print(r)
-                                        retries=retries+1
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
                                 else:
                                     print("Error not found")
-                                    print(r)
+                                print(r)
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -255,85 +254,134 @@ class FingerprintGenerator:
                     logging.info("Get P4 and P5")
                     for item  in ips:
                         P4_1=[]
-                        try:
-                            query=queries.statement_p4(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            if r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
-                                P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]]
-                                P4.append(round(mean(P4_1),4))
-                                P5.append(max(P4_1))
-                            else:
-                                P4.append(0)
-                                P5.append(0)
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        retries=0
+                        while(True):
+                            try:
+                                query=queries.statement_p4(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                if r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]!=[]:       
+                                    P4_1=[item1['doc_count'] for item1 in r["aggregations"]["filter_type"]["filter_ip"]["times"]["buckets"]]
+                                    P4.append(round(mean(P4_1),4))
+                                    P5.append(max(P4_1))
+                                else:
+                                    P4.append(0)
+                                    P5.append(0)
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
 
                     #MX per hour
                     P6=[]
                     logging.info("Get P6")
                     for item in ips:
-                        try:
-                            query=queries.statement_p6(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p6(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
                     
                     #PTR per hour
                     P7=[]
                     logging.info("Get P7")
                     for item in ips:
-                        try:
-                            query=queries.statement_p7(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p7(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
                     
                     # num different servers consulted per hour
                     P8=[]
                     logging.info("Get P8")
                     for item in ips:
-                        try:
-                            query=queries.statement_p8(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p8(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
                     
                     # TLD consulted per hour
                     P9=[] 
                     logging.info("Get P9")
                     for item in ips:
-                        try:
-                            query=queries.statement_p9(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p9(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
 
                     # SLD queried per hour
                     P10=[]
                     logging.info("Get P10")
                     for item in ips:
-                        try:
-                            query=queries.statement_p10(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p10(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
                             
                     # Uniqueness ratio per hour
                     P11=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P1,P2)]
@@ -342,53 +390,85 @@ class FingerprintGenerator:
                     P12=[]
                     logging.info("Get P12")
                     for item in ips:
-                        try:
-                            query=queries.statement_p12(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p12(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
                     
                     #num different cities per hour
                     P13=[]
                     logging.info("Get P13")
                     for item in ips:
-                        try:
-                            query=queries.statement_p13(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p13(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
                         
                     #num different countries per hour
                     P14=[]
                     logging.info("Get P14")
                     for item in ips:
-                        try:
-                            query=queries.statement_p14(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p14(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
                     
                     #flow rate per hour
                     P15=[]
                     logging.info("Get P15")
                     for item in ips:
-                        try:
-                            query=queries.statement_p15(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        while(True):
+                            try:
+                                query=queries.statement_p15(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
 
                     P15=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P2,P15)]
                     
