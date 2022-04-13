@@ -34,6 +34,7 @@ class FingerprintGenerator:
     def __init__(self, ip_elasticsearch, datestep, fn_whitelist):
        # logging.basicConfig(filename='/var/log/bndf/fingerprints.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
 
+        self.retries=10
         self.__ip_elasticsearch=ip_elasticsearch
         self.__white_list=[ ]
 
@@ -224,17 +225,25 @@ class FingerprintGenerator:
                     logging.info("Get P3")
                     for item,item2 in zip(ips,P2):
                         P4_1=[]
-                        try:
-                            query=queries.statement_p3(item,item2,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            if r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"] != []:
-                                P3.append(r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"][0]["doc_count"])
-                            else:
-                                P3.append(0)
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        retries=0
+                        while(retries < self.retries):
+                            try:
+                                query=queries.statement_p3(item,item2,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                if r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"] != []:
+                                    P3.append(r["aggregations"]["filter_type"]["filter_ip"]["dnss"]["buckets"][0]["doc_count"])
+                                else:
+                                    P3.append(0)
+                                break
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    if (r["error"]["type"]=="search_phase_execution_exception"):
+                                        print(r)
+                                        retries=retries+1
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
 
                     #average requests per minute
                     P4=[]
