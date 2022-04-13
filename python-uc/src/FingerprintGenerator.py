@@ -297,6 +297,7 @@ class FingerprintGenerator:
                                 else:
                                     P4.append(0)
                                     P5.append(0)
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -320,6 +321,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p6(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P6.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -343,6 +345,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p7(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P7.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -366,6 +369,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p8(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P8.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -389,6 +393,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p9(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P9.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -412,6 +417,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p10(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P10.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -438,6 +444,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p12(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P12.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -461,6 +468,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p13(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -484,6 +492,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p14(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
@@ -507,6 +516,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p15(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
