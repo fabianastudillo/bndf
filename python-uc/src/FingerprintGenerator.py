@@ -89,6 +89,14 @@ class FingerprintGenerator:
         except Exception as ex:
             raise ex
         
+    def clearCache(self):
+        HEADERS = {
+        'Content-Type': 'application/json'
+        }
+        uri = "http://" + self.__ip_elasticsearch + ":9200/_cache/clear"
+        r = requests.get(uri,headers=HEADERS).json()
+        print(r)
+        
     def getHostByHour(self):
         indexs=1
         matriz_num_host=[]
@@ -187,21 +195,31 @@ class FingerprintGenerator:
                     #Number of DNS requests per hour for each host
                     #Considering that each host has made a minimum of 100 requests
                     P1=[]
-                    try:
-                        query=queries.statement_p1(num_host,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        ips=[]
-                        logging.info("Get P1")
-                        for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
-                            #print(self.__white_list)
-                            if (item['key'] in self.__white_list) == False:
-                                #print(item['key'])
-                                ips.append(item['key'])
-                                P1.append(item['doc_count'])
-                    except Exception as inst:
-                        logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                        print(r)
-                        exit(0)
+                    retries=0
+                    while(True):
+                        try:
+                            query=queries.statement_p1(num_host,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            ips=[]
+                            logging.info("Get P1")
+                            for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
+                                #print(self.__white_list)
+                                if (item['key'] in self.__white_list) == False:
+                                    #print(item['key'])
+                                    ips.append(item['key'])
+                                    P1.append(item['doc_count'])
+                        except Exception as inst:
+                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            if "error" in r:
+                                retries=retries+1
+                                print("Trying " + str(retries))
+                            else:
+                                print("Error not found")
+                            print(r)
+                            self.clearCache()
+                        if (retries==self.retries):
+                            logging.error("A lot of retries in P1 ... ")
+                            exit(0)
                         
                     P1_1=[]
                     for i in range(len(P1)):
@@ -211,14 +229,24 @@ class FingerprintGenerator:
                     P2=[]
                     logging.info("Get P2")
                     for item in ips:
-                        try:
-                            query=queries.statement_p2(item,gte,lte)
-                            r = requests.get(uri,headers=HEADERS, data=query).json()
-                            P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                        except Exception as inst:
-                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                            print(r)
-                            exit(0)
+                        retries=0
+                        while(True):
+                            try:
+                                query=queries.statement_p2(item,gte,lte)
+                                r = requests.get(uri,headers=HEADERS, data=query).json()
+                                P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                            except Exception as inst:
+                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                if "error" in r:
+                                    retries=retries+1
+                                    print("Trying " + str(retries))
+                                else:
+                                    print("Error not found")
+                                print(r)
+                                self.clearCache()
+                            if (retries==self.retries):
+                                logging.error("A lot of retries in P3 ... ")
+                                exit(0)
                     
                     #max requests for a single domain
                     P3=[]
@@ -243,6 +271,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -274,6 +303,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -282,6 +312,7 @@ class FingerprintGenerator:
                     P6=[]
                     logging.info("Get P6")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p6(item,gte,lte)
@@ -295,6 +326,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -303,6 +335,7 @@ class FingerprintGenerator:
                     P7=[]
                     logging.info("Get P7")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p7(item,gte,lte)
@@ -316,6 +349,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -324,6 +358,7 @@ class FingerprintGenerator:
                     P8=[]
                     logging.info("Get P8")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p8(item,gte,lte)
@@ -337,6 +372,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -345,6 +381,7 @@ class FingerprintGenerator:
                     P9=[] 
                     logging.info("Get P9")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p9(item,gte,lte)
@@ -358,6 +395,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -366,6 +404,7 @@ class FingerprintGenerator:
                     P10=[]
                     logging.info("Get P10")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p10(item,gte,lte)
@@ -379,6 +418,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -390,6 +430,7 @@ class FingerprintGenerator:
                     P12=[]
                     logging.info("Get P12")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p12(item,gte,lte)
@@ -403,6 +444,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -411,6 +453,7 @@ class FingerprintGenerator:
                     P13=[]
                     logging.info("Get P13")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p13(item,gte,lte)
@@ -424,6 +467,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -432,6 +476,7 @@ class FingerprintGenerator:
                     P14=[]
                     logging.info("Get P14")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p14(item,gte,lte)
@@ -445,6 +490,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
@@ -453,6 +499,7 @@ class FingerprintGenerator:
                     P15=[]
                     logging.info("Get P15")
                     for item in ips:
+                        retries=0
                         while(True):
                             try:
                                 query=queries.statement_p15(item,gte,lte)
@@ -466,6 +513,7 @@ class FingerprintGenerator:
                                 else:
                                     print("Error not found")
                                 print(r)
+                                self.clearCache()
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
