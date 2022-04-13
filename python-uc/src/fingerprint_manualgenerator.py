@@ -7,6 +7,8 @@ from FingerprintGenerator import FingerprintGenerator
 import socket
 import logging
 import os
+import sys
+#import pdb; pdb.set_trace()
 
 def main():
 
@@ -14,24 +16,16 @@ def main():
     #socket.socket = socks.socksocket
 
     #date_from=date.fromisoformat('2021-08-23T00:00:00.000000Z')
-    date_from=dateutil.parser.isoparse('2022-04-01T07:00:00Z')
+    date_from=dateutil.parser.isoparse('2022-04-01T13:00:00Z')
 
-    date_upto=dateutil.parser.isoparse("2022-04-01T08:00:00Z")
+    date_upto=dateutil.parser.isoparse("2022-04-01T14:00:00Z")
     date_offset = date_from
-    #logging.basicConfig(filename='/var/log/fingerprint.log', level=logging.DEBUG)
+    logging.basicConfig(filename='/var/log/bndf/fingerprint.log', level=logging.INFO, filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     #logging.basicConfig(encoding='utf-8', format='%(levelname)s:%(message)s', level=logging.INFO)
     #logging.basicConfig(filename='/var/log/bndf/fingerprints.log', level=logging.INFO)
-    logging.basicConfig(filename='/var/log/bndf.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
-    # define a Handler which writes INFO messages or higher to the sys.stderr
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    # add the handler to the root logger
-    logging.getLogger(__name__).addHandler(console)
-    logging.info('Start ---- ')
-    #logger = logging.getLogger(__name__)
-    #logger.setLevel(logging.INFO)
-    #logging.getLogger().setLevel(logging.INFO)
-    #logging.setLevel(logging.INFO)
+    #logging.basicConfig(filename='/var/log/bndf.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+
     IP_ES = os.getenv('IP_ES')
     if not IP_ES:
         IP_ES="elasticsearch"

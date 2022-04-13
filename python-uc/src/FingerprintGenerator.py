@@ -26,7 +26,7 @@ import re
 from argparse import ArgumentParser
 from os import path
 import logging
-import pdb; pdb.set_trace()
+#import pdb; pdb.set_trace()
 
 class FingerprintGenerator:
     """This class generates the fingerprints"""
