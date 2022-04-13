@@ -226,7 +226,7 @@ class FingerprintGenerator:
                     for item,item2 in zip(ips,P2):
                         P4_1=[]
                         retries=0
-                        while(retries < self.retries):
+                        while(True):
                             try:
                                 query=queries.statement_p3(item,item2,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
@@ -241,6 +241,9 @@ class FingerprintGenerator:
                                     if (r["error"]["type"]=="search_phase_execution_exception"):
                                         print(r)
                                         retries=retries+1
+                                else:
+                                    print("Error not found")
+                                    print(r)
                             if (retries==self.retries):
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
