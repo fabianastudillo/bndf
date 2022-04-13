@@ -195,21 +195,32 @@ class FingerprintGenerator:
                     #Number of DNS requests per hour for each host
                     #Considering that each host has made a minimum of 100 requests
                     P1=[]
-                    try:
-                        query=queries.statement_p1(num_host,gte,lte)
-                        r = requests.get(uri,headers=HEADERS, data=query).json()
-                        ips=[]
-                        logging.info("Get P1")
-                        for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
-                            #print(self.__white_list)
-                            if (item['key'] in self.__white_list) == False:
-                                #print(item['key'])
-                                ips.append(item['key'])
-                                P1.append(item['doc_count'])
-                    except Exception as inst:
-                        logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                        print(r)
-                        exit(0)
+                    while(True):
+                        try:
+                            query=queries.statement_p1(num_host,gte,lte)
+                            r = requests.get(uri,headers=HEADERS, data=query).json()
+                            ips=[]
+                            logging.info("Get P1")
+                            for item in r["aggregations"]["filter_type"]["get_ip"]["buckets"]:
+                                #print(self.__white_list)
+                                if (item['key'] in self.__white_list) == False:
+                                    #print(item['key'])
+                                    ips.append(item['key'])
+                                    P1.append(item['doc_count'])
+                            break
+                        except Exception as inst:
+                            logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                            if "error" in r:
+                                retries=retries+1
+                                print("Trying " + str(retries))
+                            else:
+                                print("Error not found")
+                            print(r)
+                            self.clearCache()
+                        if (retries==self.retries):
+                            logging.error("A lot of retries in P3 ... ")
+                            exit(0)
+
                         
                     P1_1=[]
                     for i in range(len(P1)):
@@ -225,6 +236,7 @@ class FingerprintGenerator:
                                 query=queries.statement_p2(item,gte,lte)
                                 r = requests.get(uri,headers=HEADERS, data=query).json()
                                 P2.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                                break
                             except Exception as inst:
                                 logging.warning(type(inst).__name__ +  " | "  + str(inst))
                                 if "error" in r:
