@@ -43,6 +43,7 @@ services:
       - discovery.type=single-node
       #- "ES_JAVA_OPTS=-Xms512m -Xmx512m" 
       # The next line is the solution for the error circuit_breaking_exception
+      # https://cylab.be/blog/165/fixing-circuit-breaking-exception-parent-data-too-large-data-for-http-request-elk-stack-error
       - "ES_JAVA_OPTS=-Xmx4g -Xms4g"
 #      - TZ=America/Guayaquil
     volumes:
