@@ -94,7 +94,7 @@ class FingerprintGenerator:
         'Content-Type': 'application/json'
         }
         uri = "http://" + self.__ip_elasticsearch + ":9200/_cache/clear"
-        r = requests.get('post',uri,headers=HEADERS).json()
+        r = requests.post(uri,headers=HEADERS).json()
         print(r)
         
     def getHostByHour(self):
