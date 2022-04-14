@@ -45,8 +45,12 @@ def main():
             print("Setting dates: " + date_offset.strftime("%Y-%m-%d; %H:%M:%S"))
             fpg.SetDatestep(date_offset)
             print("Generating fingerprints ...")
+            tstart = datetime.datetime.now()
+            print(tstart)
             fpg.Generate()
-            print("Fingerprints generated")
+            tend = datetime.datetime.now()
+            elapsed=tend-tstart
+            print("Fingerprints generated in " + str(elapsed.total_seconds()))
             #runpy.run_path(path_name='/fingerprint_generator.py -d ' + date_from.strftime("%Y-%m-%dT%H:%M:%SZ") + '-o ' + 0 + '-w "/root/whitelist.txt" -i "elasticsearch"')
         except Exception as ex:
             logging.info(str(ex))
