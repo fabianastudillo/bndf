@@ -41,7 +41,9 @@ services:
       start_period: 30s
     environment:
       - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      #- "ES_JAVA_OPTS=-Xms512m -Xmx512m" 
+      # The next line is the solution for the error circuit_breaking_exception
+      - "ES_JAVA_OPTS=-Xmx4g -Xms4g"
 #      - TZ=America/Guayaquil
     volumes:
       - ${ELASTIC_DATAPATH:-elastic-data}:/usr/share/elasticsearch/data
