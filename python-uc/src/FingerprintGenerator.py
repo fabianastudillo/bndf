@@ -121,7 +121,6 @@ class FingerprintGenerator:
                 with open('/var/log/bndf/num_host-' + self.__datestep.strftime("%Y-%m-%d") + '.csv', 'a') as f:
                     f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
             except Exception as inst:
-                
                 print(type(inst))
                 print(inst.args)
                 print(inst)
@@ -188,7 +187,7 @@ class FingerprintGenerator:
 
             #hosts_number.append(num_host)
             try:
-                with open('/var/log/bndf/num_host-' + self.__datestep.strftime("%Y-%m-%d") + '.csv', 'w') as f:
+                with open('/var/log/bndf/num_host-' + self.__datestep.strftime("%Y-%m-%d") + '.csv', 'a') as f:
                     f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
             #print("num_host= " + str(num_host))
                 if num_host!=0:
