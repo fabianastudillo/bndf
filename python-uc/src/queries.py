@@ -570,7 +570,7 @@ def statement_p12(item, gte, lte):
     return query
 
 
-# de ciudades disintas
+# From different cities
 def statement_p13(item, gte, lte):
     query = json.dumps(
         {
