@@ -6,6 +6,7 @@ ADD GeoLite2-City.mmdb /usr/share/GeoIP/
 
 RUN /usr/share/logstash/bin/logstash-plugin install logstash-filter-tld
 RUN /usr/share/logstash/bin/logstash-plugin install logstash-input-gelf
+RUN /usr/share/logstash/bin/logstash-plugin install logstash-filter-dns
 
 USER 0
 RUN yum install -y tcpdump
