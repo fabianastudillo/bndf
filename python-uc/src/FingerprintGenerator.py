@@ -31,7 +31,7 @@ import logging
 class FingerprintGenerator:
     """This class generates the fingerprints"""
 
-    def __init__(self, ip_elasticsearch, datestep, fn_whitelist):
+    def __init__(self, ip_elasticsearch, datestep, fn_whitelist, graylog=True):
        # logging.basicConfig(filename='/var/log/bndf/fingerprints.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
 
         self.retries=1000
@@ -41,6 +41,7 @@ class FingerprintGenerator:
         self.__output_dir = Path('/var/log/bndf/')
 
         self.__output_dir.mkdir(parents=True, exist_ok=True)
+        self.__graylog=graylog
         
         logging.info("Fingerprint Generator")
         if (fn_whitelist and os.path.exists(fn_whitelist)):
@@ -119,7 +120,7 @@ class FingerprintGenerator:
                 print(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
             
                 with open('/var/log/bndf/num_host-' + self.__datestep.strftime("%Y-%m-%d") + '.csv', 'a') as f:
-                    f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
+                    f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host)+'\n')
             except Exception as inst:
                 print(type(inst))
                 print(inst.args)
@@ -457,53 +458,59 @@ class FingerprintGenerator:
                                 logging.error("A lot of retries in P3 ... ")
                                 exit(0)
                     
-                    #num different cities per hour
+                    #num of different cities per hour
                     P13=[]
-                    logging.info("Get P13")
-                    for item in ips:
-                        retries=0
-                        while(True):
-                            try:
-                                query=queries.statement_p13(item,gte,lte)
-                                r = requests.get(uri,headers=HEADERS, data=query).json()
-                                P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                                break
-                            except Exception as inst:
-                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                                if "error" in r:
-                                    retries=retries+1
-                                    print("Trying " + str(retries))
-                                else:
-                                    print("Error not found")
-                                print(r)
-                                self.clearCache()
-                            if (retries==self.retries):
-                                logging.error("A lot of retries in P3 ... ")
-                                exit(0)
+                    if (self.__graylog):
+                        logging.info("Get P13")
+                        for item in ips:
+                            retries=0
+                            while(True):
+                                try:
+                                    query=queries.statement_p13(item,gte,lte)
+                                    r = requests.get(uri,headers=HEADERS, data=query).json()
+                                    P13.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                                    break
+                                except Exception as inst:
+                                    logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                    if "error" in r:
+                                        retries=retries+1
+                                        print("Trying " + str(retries))
+                                    else:
+                                        print("Error not found")
+                                    print(r)
+                                    self.clearCache()
+                                if (retries==self.retries):
+                                    logging.error("A lot of retries in P3 ... ")
+                                    exit(0)
+                    else:
+                        logging.info("P13 ignored, graylog enabled")
                         
-                    #num different countries per hour
+                    #num of different countries per hour
                     P14=[]
-                    logging.info("Get P14")
-                    for item in ips:
-                        retries=0
-                        while(True):
-                            try:
-                                query=queries.statement_p14(item,gte,lte)
-                                r = requests.get(uri,headers=HEADERS, data=query).json()
-                                P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
-                                break
-                            except Exception as inst:
-                                logging.warning(type(inst).__name__ +  " | "  + str(inst))
-                                if "error" in r:
-                                    retries=retries+1
-                                    print("Trying " + str(retries))
-                                else:
-                                    print("Error not found")
-                                print(r)
-                                self.clearCache()
-                            if (retries==self.retries):
-                                logging.error("A lot of retries in P3 ... ")
-                                exit(0)
+                    if (self.__graylog):
+                        logging.info("Get P14")
+                        for item in ips:
+                            retries=0
+                            while(True):
+                                try:
+                                    query=queries.statement_p14(item,gte,lte)
+                                    r = requests.get(uri,headers=HEADERS, data=query).json()
+                                    P14.append(r["aggregations"]["filter_type"]["filter_ip"]["unique_ids"]["value"])
+                                    break
+                                except Exception as inst:
+                                    logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                    if "error" in r:
+                                        retries=retries+1
+                                        print("Trying " + str(retries))
+                                    else:
+                                        print("Error not found")
+                                    print(r)
+                                    self.clearCache()
+                                if (retries==self.retries):
+                                    logging.error("A lot of retries in P3 ... ")
+                                    exit(0)
+                    else:
+                        logging.info("P14 ignored, graylog enabled")
                     
                     #flow rate per hour
                     P15=[]
