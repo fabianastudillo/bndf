@@ -27,6 +27,7 @@ RUN python -m pip install requests==2.26.0 elasticsearch==7.14.0 pandas==1.3.2 p
 RUN python -m pip install -U scikit-learn
 RUN python -m pip install matplotlib
 RUN python -m pip install plotly chart_studio
+RUN python -m pip install tabulate termcolor
 #RUN chmod +x fingerprint_generator.py
 #CMD [ "python", "./fingerprint_generator.py" ]
 #RUN (crontab -l -u root; echo "*/2 * * * * /new_entrypoint.sh") | crontab

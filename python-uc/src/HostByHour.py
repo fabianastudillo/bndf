@@ -15,9 +15,9 @@ def main():
     #socket.socket = socks.socksocket
 
     #date_from=date.fromisoformat('2021-08-23T00:00:00.000000Z')
-    date_from=dateutil.parser.isoparse('2022-04-04T00:00:00Z')
+    date_from=dateutil.parser.isoparse('2022-04-15T00:00:00Z')
 
-    date_upto=dateutil.parser.isoparse("2022-04-15T00:00:00Z")
+    date_upto=dateutil.parser.isoparse("2022-04-16T00:00:00Z")
     date_offset = date_from
 
     #matriz_num_host=[]

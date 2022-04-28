@@ -63,16 +63,20 @@ import csv
 def ClassifyAnomalies(df,metric_name):
     df['metric_name']=metric_name
     df = df.sort_values(by='load_date', ascending=False)
-    #Shift actuals by one timestamp to find the percentage chage between current and previous data point
+    #Shift actuals by one timestamp to find the percentage change between current and previous data point
     df['shift'] = df['actuals'].shift(-1)
-    df['percentage_change'] = ((df['actuals'] - df['shift']) / df['actuals']) * 100
+    #df['percentage_change'] = ((df['actuals'] - df['shift']) / df['actuals']) * 100
     #Categorise anomalies as 0-no anomaly, 1- low anomaly , 2 - high anomaly
     df['anomaly'].loc[df['anomaly'] == 1] = 0
     df['anomaly'].loc[df['anomaly'] == -1] = 2
     df['anomaly_class'] = df['anomaly']
     max_anomaly_score = df['score'].loc[df['anomaly_class'] == 2].max()
+    #print("Max Anomaly Score")
+    #print(max_anomaly_score)
     medium_percentile = df['score'].quantile(0.24)
+    #print(medium_percentile)
     df['anomaly_class'].loc[(df['score'] > max_anomaly_score) & (df['score'] <= medium_percentile)] = 1
+    print(df['anomaly_class'])
     return df
 
 ##################################
@@ -83,6 +87,9 @@ def Convert(a):
     return res_dct
 
 def main():
+
+    logging.basicConfig(filename='/var/log/bndf/fingerprint.log', level=logging.INFO, filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
     parser = ArgumentParser(
             description='Fingerprint generator',
@@ -97,6 +104,12 @@ def main():
     help="Reduce to 2 dimensions using PCA")
     parser.add_argument("-e", "--es", dest="opt_es", action='store_true', required=False,
     help="Upload the anomalies to elasticsearch")
+    parser.add_argument("-g", "--graylog", dest="opt_graylog", action='store_true', required=False,
+    help="Execute the algorithm removing certain attributs from fingerprints file")
+    parser.add_argument("-a", "--onebyone", dest="opt_onebyone", action='store_true', required=False,
+    help="Execute the algorithm for each attribute")
+    parser.add_argument("-s", "--estimators", type=int, dest="opt_est", required=False,
+    help="Set the number of estimators for the Anomaly Detection Algorithm")
 
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
@@ -107,9 +120,18 @@ def main():
     today = date.today()
     current_date = today.strftime("%Y.%m.%d")
     
-    anomalies_filename=r'/var/log/bndf/FP_anomalies_target-' + current_date + '.csv'
-    full_filename=r'/var/log/bndf/full-' + current_date + '.csv'
-    loadfull=False;
+    anomalies_filename=r'/bndf/adf/FP_anomalies_target-' + current_date + '.csv'
+    fullfilename=r'/bndf/adf/full-' + current_date + '.csv'
+    fullglfilename=r'/bndf/adf/full-graylog-' + current_date + '.csv'
+    fpfilename=r'/bndf/adf/FP_anomalies_target-' + current_date + '.csv'
+    loadfull=False
+    n_estimators=110
+    if args.opt_est:
+        n_estimators = args.opt_est
+        logging.info("The number of estimators is " + str(n_estimators))
+    graylog=True # TODO: In the final version change to False
+    if args.opt_graylog:
+        graylog=True
 
     # TODO: improve the next code, it has redundant code
     import pandas as pd # data processing
@@ -120,25 +142,40 @@ def main():
         # Dataframe list of all entries
         df_list = []
 
-        for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"),)):
-            df_list.append(pd.read_csv(filename))
-            full_df = pd.concat(df_list)
-            full_df.to_csv(full_filename, index=False)
+        try:
+            for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
+                print(filename)
+                df_list.append(pd.read_csv(filename))
+                full_df = pd.concat(df_list)
+                full_df.to_csv(fullfilename, index=False)
+        except Exception as inst:
+            print(type(inst))
+            print(inst.args)
+            print(inst)
+            exit(0)
 
-        df=pd.read_csv(full_filename)
+        if graylog:
+            stream = os.popen("cut -d',' -f 1-14,17 " + fullfilename + " > " + fullglfilename)
+            output = stream.read()
+            fullfilename = fullglfilename
+
+        df=pd.read_csv(fullfilename)
         df.head()
         metrics_df=df
         logging.info("Number of hosts: " + str(len(set(metrics_df['ip']))))
 
 
         #metrics_df.columns
-        # take csv columns from 3 to 18 
-        to_model_columns=metrics_df.columns[3:18]
-
+        # take csv columns from 2 to 16
+        if graylog:
+            to_model_columns=metrics_df.columns[2:15]
+        else:
+            to_model_columns=metrics_df.columns[2:17]
+        
         #clf=IsolationForest(n_estimators=100, max_samples='auto', contamination=float(.12),
                             #max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
                             #verbose=0)
-        clf=IsolationForest(n_estimators=110, max_samples='auto', contamination='auto',
+        clf=IsolationForest(n_estimators=n_estimators, max_samples='auto', contamination='auto',
                             max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
                             verbose=0)
         clf.fit(metrics_df[to_model_columns])
@@ -183,7 +220,7 @@ def main():
             ax.legend()
 
             plt.show()
-            fig.savefig("dns_fingerprints_3d-1-" + current_date + ".pdf")
+            fig.savefig("/bndf/adf/dns_fingerprints_3d-1-" + current_date + ".pdf")
 
             #pca = PCA(n_components=3)  # Reduce to k=3 dimensions
             #scaler = StandardScaler()
@@ -204,7 +241,7 @@ def main():
             ax.set_ylim3d(0,4)
             #ax.axis('off')
             plt.show()
-            fig.savefig("dns_fingerprints_3d-2-" + current_date + ".pdf")
+            fig.savefig("/bndf/adf/dns_fingerprints_3d-2-" + current_date + ".pdf")
 
             fig=plt.figure()
 
@@ -223,7 +260,7 @@ def main():
                             s=20,label="anormal")
             plt.legend(loc="upper right")
             plt.show()
-            fig.savefig("dns_fingerprints_2d-" + current_date + ".pdf")
+            fig.savefig("/bndf/adf/dns_fingerprints_2d-" + current_date + ".pdf")
     else:
         #logging.info("You have to run the script with the generation of outliers option [-o]")
         print("You have to run the script with the generation of outliers option [-o]")
@@ -255,17 +292,28 @@ def main():
         except:
             pass
 
-        metrics_df=pd.read_csv(r"/var/log/bndf/FP_anomalies_target-" + current_date + ".csv")
+        metrics_df=pd.read_csv(fpfilename)
 
-        datos_finales=[["@timestamp",time,
-                        "ip",ip,"p1",p1,"p2",p2,"p3",p3,"p4",p4,"p5",p5,
-                        "p6",p6,"p7",p7,"p8",p8,"p9",p9,"p10",p10,"p11",
-                        p11,"p12",p12,"p13",p13,"p14",p14,"p15",p15,"an",an] 
-                        for time,ip,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,an 
-                        in zip(metrics_df['@timestamp'],metrics_df['ip'],metrics_df['P1'],metrics_df['P2'],metrics_df['P3'],
-                metrics_df['P4'],metrics_df['P5'],metrics_df['P6'],metrics_df['P7'],metrics_df['P8'],metrics_df['P9'],
-                metrics_df['P10'],metrics_df['P11'],metrics_df['P12'],metrics_df['P13'],metrics_df['P14'],metrics_df['P15'],
-                metrics_df['anomaly'])]
+        if graylog:
+            datos_finales=[["@timestamp",time,
+                            "ip",ip,"p1",p1,"p2",p2,"p3",p3,"p4",p4,"p5",p5,
+                            "p6",p6,"p7",p7,"p8",p8,"p9",p9,"p10",p10,"p11",
+                            p11,"p12",p12,"p15",p15,"an",an] 
+                            for time,ip,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p15,an 
+                            in zip(metrics_df['@timestamp'],metrics_df['ip'],metrics_df['P1'],metrics_df['P2'],metrics_df['P3'],
+                    metrics_df['P4'],metrics_df['P5'],metrics_df['P6'],metrics_df['P7'],metrics_df['P8'],metrics_df['P9'],
+                    metrics_df['P10'],metrics_df['P11'],metrics_df['P12'],metrics_df['P15'],
+                    metrics_df['anomaly'])]
+        else:
+            datos_finales=[["@timestamp",time,
+                            "ip",ip,"p1",p1,"p2",p2,"p3",p3,"p4",p4,"p5",p5,
+                            "p6",p6,"p7",p7,"p8",p8,"p9",p9,"p10",p10,"p11",
+                            p11,"p12",p12,"p13",p13,"p14",p14,"p15",p15,"an",an] 
+                            for time,ip,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,an 
+                            in zip(metrics_df['@timestamp'],metrics_df['ip'],metrics_df['P1'],metrics_df['P2'],metrics_df['P3'],
+                    metrics_df['P4'],metrics_df['P5'],metrics_df['P6'],metrics_df['P7'],metrics_df['P8'],metrics_df['P9'],
+                    metrics_df['P10'],metrics_df['P11'],metrics_df['P12'],metrics_df['P13'],metrics_df['P14'],metrics_df['P15'],
+                    metrics_df['anomaly'])]
 
         datos_finales_json=[Convert(item) for item in datos_finales]
 
@@ -282,7 +330,9 @@ def main():
         #metrics_df['index']=columna_indice
         ###
 
-        clf=IsolationForest(n_estimators=110, max_samples='auto', contamination='auto',
+    if args.opt_onebyone:
+        print("One by one ...")
+        clf=IsolationForest(n_estimators=n_estimators, max_samples='auto', contamination='auto',
                             max_features=1.0, bootstrap=False, n_jobs=-1, random_state=42, 
                             verbose=0)
         # First column is timestamp
@@ -298,59 +348,48 @@ def main():
         #all_df['actuals']=metrics_df[to_model_columns]
         #all_df['anomaly']=all_pred
         #breakpoint()
-        for i in range(3,len(metrics_df.columns)-1):
-            clf.fit(metrics_df.iloc[:,i:i+1])
-            pred = clf.predict(metrics_df.iloc[:,i:i+1])
+        import numpy as np
+        print(metrics_df.columns)
+        for i in range(2,len(metrics_df.columns)-1):
+            attribute_name=str(metrics_df.columns[i])
+            print ("Column: " + attribute_name)
+            
+            mdf_col = metrics_df.iloc[:,i:i+1]
+            
+            clf.fit(mdf_col)
+            #pred = clf.predict(mdf_col)
+            #print(pred)
             test_df=pd.DataFrame()
 
             #test_df['load_date']=metrics_df['index']
             test_df['load_date']=metrics_df['@timestamp']
             #dates = metrics_df['@timestamp']
             #Find decision function to find the score and classify anomalies
-            test_df['score']=clf.decision_function(metrics_df.iloc[:,i:i+1])
-            test_df['actuals']=metrics_df.iloc[:,i:i+1]
-            test_df['anomaly']=pred
-            #Get the indexes of outliers in order to compare the metrics     with use case anomalies if required
+            
+            #print(mdf_col)
+            test_df['actuals']=mdf_col
+            test_df['score']=clf.decision_function(mdf_col)
+            test_df['anomaly']=clf.predict(mdf_col)
+            
+            #Get the indexes of outliers in order to compare the metrics with use case anomalies if required
             ##outliers=test_df.loc[test_df['anomaly']==-1]
             ##outlier_index=list(outliers.index)
-            test_df=ClassifyAnomalies(test_df,metrics_df.columns[i])
+            # TODO: At the moment we doesn't use the anomaly classification 
+            test_df=ClassifyAnomalies(test_df,attribute_name)
             
-            #plot_anomaly(test_df,metrics_df.columns[i])
-            # Description
-            #descrip=["P1","Number of DNS requests per hour",
-            #        "P2","Number of different DNS requests per hour",
-            #        "P3","Highest number of requests for a single domain per hour",
-            #        "P4","Average number of requests per minute",
-            #        "P5","Most requests per minute",
-            #        "P6","Number of MX record queries per hour",
-            #        "P7","Number of PTR records queries per hour",
-            #        "P8","Number of different DNS servers queried per hour",
-            #        "P9","Number of different TLD domains queried per hour",
-            #        "P10","Number of different SLD domains consulted per hour",
-            #        "P11","Uniqueness ratio per hour",
-            #        "P12","Number of failed / NXDOMAIN queries per hour",
-            #        "P13","Number of different cities of resolved IP addresses",
-            #        "P14","Number of different countries of resolved IP addresse",
-            #        "P15","Hourly flow rate"]
-            #pio.renderers.default='browser'
-            ##df.load_date = pd.to_datetime(df['load_date'].astype(str), format="%Y%m%d")
-            dates = test_df.load_date
-            records=len(dates)
-            #breakpoint()
-            index=pd.array(range(1,records+1), dtype=np.dtype("int32"))
-            #identify the anomaly points and create a array of its values for plot
-            bool_array = (abs(test_df['anomaly']) > 0)
-            actuals = test_df["actuals"][-len(bool_array):]
-            anomaly_points = bool_array * actuals
+            #identify the anomaly points and create a array of its values
+            anomaly_points = (abs(test_df['anomaly']) > 0) * (test_df["actuals"])
             anomaly_points[anomaly_points == 0] = np.nan
-
-            r = open('/var/log/bndf/anomalies-p' + str(i-1) + '.csv', 'w')
+            r = open('/bndf/adf/anomalies-' + str(metrics_df.columns[i]) + '.csv', 'w')
             writer = csv.writer(r)
             #writer.writerows(np.stack([dates,test_df['actuals'],anomaly_points], axis=1))
-            #breakpoint()
+            
+            # In the next line is generated an array from 1 to the number of records
+            index=pd.array(range(1,(len(test_df["load_date"]))+1), dtype=np.dtype("int32"))
+            # In the file is writen the index column, the actuals column and the anomalies column
+            #    the axis parameter is for write in transpose mode
             writer.writerows(np.stack([index,test_df['actuals'],anomaly_points], axis=1))
             r.close()
-
 
 if __name__ == "__main__":
     main()

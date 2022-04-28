@@ -20,15 +20,19 @@ warnings.filterwarnings('ignore')
 
 df_list = []
 
+# adf = anomaly detection folder
+fullfilename='/bndf/adf/full.csv'
+resultsfilename='/bndf/adf/estimators.csv'
+
 print("Join fingerprint files ...")
 for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
     print(filename)
     df_list.append(pd.read_csv(filename))
     full_df = pd.concat(df_list)
-    full_df.to_csv('/var/log/bndf/full.csv', index=False)
+    full_df.to_csv(fullfilename, index=False)
 
 print("Processing ...")
-df=pd.read_csv("/var/log/bndf/full.csv")
+df=pd.read_csv(fullfilename)
 df.head()
 metrics_df=df
 
@@ -61,16 +65,16 @@ for i in range(2,1000):
 #    print(n_estimator)
 #    print(metrics_df['anomaly'].value_counts())
 
-r = open('/var/log/bndf/estimators.csv', 'w')
+r = open(resultsfilename, 'w')
 writer = csv.writer(r)
 writer.writerows(np.stack([estimator,anomalies], axis=1))
 r.close()
 
-f=plt.figure()
-plt.title("Number of Anomalies Found")
-plt.xlabel("Number of Trees")
-plt.ylabel("Number of Anomalies")
-plt.plot(estimator,anomalies)
-plt.show()
-f.savefig("full.pdf", bbox_inches='tight')
+#f=plt.figure()
+#plt.title("Number of Anomalies Found")
+##plt.xlabel("Number of Trees")
+#plt.ylabel("Number of Anomalies")
+#plt.plot(estimator,anomalies)
+#plt.show()
+#f.savefig("full.pdf", bbox_inches='tight')
 

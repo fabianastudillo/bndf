@@ -31,7 +31,7 @@ import logging
 class FingerprintGenerator:
     """This class generates the fingerprints"""
 
-    def __init__(self, ip_elasticsearch, datestep, fn_whitelist, graylog=True):
+    def __init__(self, ip_elasticsearch, datestep, fn_whitelist, graylog=True, dga=False):
        # logging.basicConfig(filename='/var/log/bndf/fingerprints.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
 
         self.retries=1000
@@ -42,6 +42,7 @@ class FingerprintGenerator:
 
         self.__output_dir.mkdir(parents=True, exist_ok=True)
         self.__graylog=graylog
+        self.__dga=dga
         
         logging.info("Fingerprint Generator")
         if (fn_whitelist and os.path.exists(fn_whitelist)):
@@ -150,7 +151,7 @@ class FingerprintGenerator:
 
         # # ii = 1
         indexs=1
-
+        self.clearCache()
         matriz_num_host=[]
         for indice in self.__dns_indices:
             hosts_number=[]
@@ -460,7 +461,7 @@ class FingerprintGenerator:
                     
                     #num of different cities per hour
                     P13=[]
-                    if (self.__graylog):
+                    if (not self.__graylog):
                         logging.info("Get P13")
                         for item in ips:
                             retries=0
@@ -483,11 +484,12 @@ class FingerprintGenerator:
                                     logging.error("A lot of retries in P3 ... ")
                                     exit(0)
                     else:
+                        P13=[0]*len(P12)
                         logging.info("P13 ignored, graylog enabled")
                         
                     #num of different countries per hour
                     P14=[]
-                    if (self.__graylog):
+                    if (not self.__graylog):
                         logging.info("Get P14")
                         for item in ips:
                             retries=0
@@ -510,6 +512,7 @@ class FingerprintGenerator:
                                     logging.error("A lot of retries in P3 ... ")
                                     exit(0)
                     else:
+                        P14=[0]*len(P12)
                         logging.info("P14 ignored, graylog enabled")
                     
                     #flow rate per hour
@@ -538,6 +541,29 @@ class FingerprintGenerator:
 
                     P15=[round(ai/bi,4) if bi!=0 else 0 for ai,bi in zip(P2,P15)]
                     
+                    
+                    if (self.__dga):
+                        P16=[]
+                        for item in ips:
+                            retries=0
+                            while(True):
+                                try:
+                                    query=queries.statement_p15(item,gte,lte)
+                                    r = requests.get(uri,headers=HEADERS, data=query).json()
+                                    P15.append(r["aggregations"]["filter_type"]["filter_ip"]["filter_type"]["doc_count"])
+                                    break
+                                except Exception as inst:
+                                    logging.warning(type(inst).__name__ +  " | "  + str(inst))
+                                    if "error" in r:
+                                        retries=retries+1
+                                        print("Trying " + str(retries))
+                                    else:
+                                        print("Error not found")
+                                    print(r)
+                                    self.clearCache()
+                                if (retries==self.retries):
+                                    logging.error("A lot of retries in P3 ... ")
+                                    exit(0)
                     #print(P1_1,ips,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P15)
                     """
                     datos_finales=[["@timestamp",time,
@@ -609,7 +635,7 @@ def main():
     # socket.socket = socks.socksocket
     ip_es = args.ip_es
     print("- The elastic search IP is " + ip_es)
-    datefpg = date_from=dateutil.parser.isoparse(args.date);
+    datefpg = dateutil.parser.isoparse(args.date);
     fgp=FingerprintGenerator(datefpg, args.ip_es, args.whitelist)
 
     if args.list_all_indices:

@@ -784,17 +784,18 @@ def statement_pNX(item, size, gte, lte):
                         "filter_ip": {
                             "filter": {"term": {"src_ip.keyword": item}},
                             "aggs": {
-                                "Filtro_NX": {
+                                "NX_filter": {
                                   "filter":{"term": {
                                     "dns.rcode.keyword": "NXDOMAIN"
                                   }},
                                   "aggs":{
-                                    "Filtro_dls":{
+                                    "sld_filter":{
                                       "terms":{
-                                        "field": "dn.sld.keyword",
+                                        #"field": "dn.sld.keyword",
+                                        #"script" : "doc['dn.sld.keyword'].value + '.' + doc['dn.tld.keyword'].value",
+                                        "script" : "doc['dns.rrname.keyword'].value",
                                         "size": size
                                       }
-                                      
                                     }
                                   }
                                 }
