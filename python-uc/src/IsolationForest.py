@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import logging
 import csv
 import numpy as np
+import datetime as dt
+from datetime import datetime
 
 warnings.filterwarnings('ignore')
 #print(os.listdir("../Tesis"))
@@ -25,11 +27,23 @@ fullfilename='/bndf/adf/full.csv'
 resultsfilename='/bndf/adf/estimators.csv'
 
 print("Join fingerprint files ...")
-for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
-    print(filename)
+
+today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+today = today - dt.timedelta(days=10)
+
+for i in range(10):
+    __today = today.strftime("%Y-%m-%d")
+    filename=os.path.join("/var/log/bndf/","fingerprints-" + __today + ".csv")
     df_list.append(pd.read_csv(filename))
     full_df = pd.concat(df_list)
     full_df.to_csv(fullfilename, index=False)
+    today = today + dt.timedelta(days=1)
+    
+#for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
+#    print(filename)
+#    df_list.append(pd.read_csv(filename))
+#    full_df = pd.concat(df_list)
+#    full_df.to_csv(fullfilename, index=False)
 
 print("Processing ...")
 df=pd.read_csv(fullfilename)

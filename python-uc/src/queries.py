@@ -8,7 +8,7 @@ Created on Mon Nov 16 17:13:27 2020
 """
 import json
 
-# numero de hosts
+# Number of hosts
 def statement_p1_1(gte, lte):
     query = json.dumps(
         {
@@ -50,7 +50,7 @@ def statement_p1_1(gte, lte):
     return query
 
 
-# numero de solicitudes dns por hora
+# Get the number of dns requests per hour
 def statement_p1(size, gte, lte):
     query = json.dumps(
         {
@@ -101,7 +101,7 @@ def statement_p1(size, gte, lte):
     return query
 
 
-# numero de solicitudes dns por hora
+# Get the number of dns requests per hour
 def statement_p2(item, gte, lte):
     query = json.dumps(
         {
@@ -152,7 +152,7 @@ def statement_p2(item, gte, lte):
     return query
 
 
-# la mayor cantidad de solititudes para un solo dominio por hora
+# Get the most requests for a single domain per hour
 def statement_p3(item, size, gte, lte):
     query = json.dumps(
         {
@@ -207,8 +207,7 @@ def statement_p3(item, size, gte, lte):
     return query
 
 
-# Numero medio de solicitudes por minuto
-# se saca la solicitudes por minuto
+# Mean number of queries by minute
 def statement_p4(item, gte, lte):
     query = json.dumps(
         {
@@ -264,7 +263,7 @@ def statement_p4(item, gte, lte):
     return query
 
 
-# num de consultas de registros Mx por hora
+# number of MX register queries per hour
 def statement_p6(item, gte, lte):
     query = json.dumps(
         {
@@ -315,7 +314,7 @@ def statement_p6(item, gte, lte):
     return query
 
 
-# Numero de consutlas PTR por hora
+# Number of PTR queries per hour
 def statement_p7(item, gte, lte):
     query = json.dumps(
         {
@@ -366,7 +365,7 @@ def statement_p7(item, gte, lte):
     return query
 
 
-# numero de servidores dns distintos consultados por hora
+# get the number of different DNS servers queried per hour
 def statement_p8(item, gte, lte):
     query = json.dumps(
         {
@@ -417,7 +416,7 @@ def statement_p8(item, gte, lte):
     return query
 
 
-# sacar el numero de tld para cada host
+# get the number of tld by host
 def statement_p9(item, gte, lte):
     query = json.dumps(
         {
@@ -467,7 +466,7 @@ def statement_p9(item, gte, lte):
     )
     return query
 
-# sacar el numero de tld para cada host
+# get the number of sld by host
 def statement_p10(item, gte, lte):
     query = json.dumps(
         {
@@ -517,7 +516,7 @@ def statement_p10(item, gte, lte):
     )
     return query
 
-# NXDOMAIN por hora
+# NXDOMAIN per hour
 def statement_p12(item, gte, lte):
     query = json.dumps(
         {
@@ -831,6 +830,37 @@ def statement_pNX(item, size, gte, lte):
                     "must_not": [],
                 }
             },
+        }
+    )
+    return query
+
+# Get member by IP
+def getMember(ip):
+    query = json.dumps(
+        {
+            "size": 0,
+            "query": {
+                "bool": {
+                "filter": {"term": {"src_ip.keyword": ip}}
+                }
+            },
+            "aggs": {
+                "members": {
+                "terms": {
+                    "field": "member.keyword",
+                    "order": {
+                    "firstSeen": "asc"
+                    }
+                },
+                "aggs": {
+                    "firstSeen": {
+                    "min": {
+                        "field": "@timestamp"
+                    }
+                    }
+                }
+                }
+            }
         }
     )
     return query

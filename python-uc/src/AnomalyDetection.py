@@ -5,13 +5,17 @@ Created on Fri Nov 27 17:36:20 2020
 
 @author: Vicente Quezada
 @modified by: Fabian Astudillo-Salinas <fabian.astudillos@ucuenca.edu.ec>
+
+Execution example: python AnomalyDetection.py -o -s 70 -3 -2
 """
 
 import glob, os
 from os.path import exists
+import datetime as dt
 #import pandas as pd # data processing
 import warnings
 from argparse import ArgumentParser
+from datetime import datetime
 #import os
 from sklearn.ensemble import IsolationForest
 import matplotlib.pyplot as plt
@@ -120,12 +124,18 @@ def main():
     today = date.today()
     current_date = today.strftime("%Y.%m.%d")
     
-    anomalies_filename=r'/bndf/adf/FP_anomalies_target-' + current_date + '.csv'
+    #anomalies_filename=r'/bndf/adf/FP_anomalies_target-' + current_date + '.csv'
     fullfilename=r'/bndf/adf/full-' + current_date + '.csv'
     fullglfilename=r'/bndf/adf/full-graylog-' + current_date + '.csv'
     fpfilename=r'/bndf/adf/FP_anomalies_target-' + current_date + '.csv'
+    fplastfilename=r'/bndf/adf/FP_anomalies_target-last.csv'
     loadfull=False
     n_estimators=110
+    
+    f = open("/var/log/bndf/cron-anomaly-detection.log", "a")
+    f.write("Executed: " + current_date)
+    f.close()
+    
     if args.opt_est:
         n_estimators = args.opt_est
         logging.info("The number of estimators is " + str(n_estimators))
@@ -143,11 +153,22 @@ def main():
         df_list = []
 
         try:
-            for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
+            today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            today = today - dt.timedelta(days=10)
+            for i in range(10):
+                __today = today.strftime("%Y-%m-%d")
+                filename=os.path.join("/var/log/bndf/","fingerprints-" + __today + ".csv")
                 print(filename)
                 df_list.append(pd.read_csv(filename))
                 full_df = pd.concat(df_list)
                 full_df.to_csv(fullfilename, index=False)
+                today = today + dt.timedelta(days=1)
+            
+#            for filename in sorted(glob.glob(os.path.join("/var/log/bndf/","fingerprints-*.csv"))):
+#                print(filename)
+#                df_list.append(pd.read_csv(filename))
+#                full_df = pd.concat(df_list)
+#                full_df.to_csv(fullfilename, index=False)
         except Exception as inst:
             print(type(inst))
             print(inst.args)
@@ -192,7 +213,8 @@ def main():
         #Find the number of anomalies and normal points here points classified -1 are anomalous
         logging.info("Anomalies: " + str(metrics_df['anomaly'].value_counts()))
         ####
-        metrics_df.to_csv(anomalies_filename,index=False)
+        metrics_df.to_csv(fpfilename,index=False)
+        metrics_df.to_csv(fplastfilename,index=False)
         loadfull=True
 
     #if exists(full_filename):

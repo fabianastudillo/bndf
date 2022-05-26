@@ -1,7 +1,10 @@
 #import runpy
 import datetime as dt
 from datetime import datetime
+from random import Random
 from FingerprintGenerator import FingerprintGenerator
+from RandomForestDetectionModel import RandomForestDetectionModel
+from AntiDomainGenerationAlgorithm import AntiDomainGenerationAlgorithm
 #import socks
 import socket
 import logging
@@ -21,8 +24,17 @@ def main():
         IP_ES="elasticsearch"
 
     try:
+        print(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing FingerprintGenerator")
         fpg = FingerprintGenerator(IP_ES, today, "/root/whitelist.txt")
         fpg.Generate()
+        print(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing RandomForestDetectionModel")
+        rfdm = RandomForestDetectionModel()
+        rfdm.Predict()
+        print(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing AntiDomainGenerationAlgorithm")
+        adga = AntiDomainGenerationAlgorithm(all_fingerprints=False, clean_index=False)
+        adga.Run()
+        print(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Upload data to elasticsearch")
+        adga.UploadToElasticsearch()
     except Exception as ex:
         logging.info(str(ex))
 

@@ -70,7 +70,7 @@ class FingerprintGenerator:
         res_dct = dict(zip(it, it))
         return res_dct
 
-    def GetIndices(self):
+    def GetIndexes(self):
         for index in self.__elasticsearch.indices.get('logstash-dns-*'):
             print(index)
         print("")
@@ -151,7 +151,8 @@ class FingerprintGenerator:
 
         # # ii = 1
         indexs=1
-        self.clearCache()
+        # TODO: Verify when we have to clear the cache
+        #self.clearCache()
         matriz_num_host=[]
         for indice in self.__dns_indices:
             hosts_number=[]
@@ -580,7 +581,7 @@ class FingerprintGenerator:
                         ii=ii+1
                     """
                         
-                    index_array=[j for j in range(indexs,indexs+len(P1))]
+                    #index_array=[j for j in range(indexs,indexs+len(P1))]
                     indexs=indexs+len(P1)
                     data={"@timestamp":P1_1,"ip":ips,'P1':P1,'P2':P2,'P3':P3,'P4':P4,'P5':P5,
                             'P6':P6,'P7':P7,'P8':P8,'P9':P9,'P10':P10,
@@ -592,6 +593,10 @@ class FingerprintGenerator:
                     logging.info("Save fingerprint ...")
                     path =  '/var/log/bndf/fingerprints-' + self.__datestep.strftime("%Y-%m-%d") + '.csv'
                     df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
+                    path =  '/var/log/bndf/fingerprints-last.csv'
+                    if os.path.exists(path):
+                        os.remove(path)
+                    df.to_csv(path, index=None)
                     logging.info("Fingerprint saved")
             except Exception as inst:
                 #TODO: manage this error {'error': {'root_cause': [{'type': 'circuit_breaking_exception', 'reason': '[parent] Data too large, data for [<reused_arrays>] would be [511424472/487.7mb], which is larger than the limit of [510027366/486.3mb], real usage: [500220696/477mb], new bytes reserved: [11203776/10.6mb], usages [request=11222208/10.7mb, fielddata=24381797/23.2mb, in_flight_requests=1378/1.3kb, model_inference=0/0b, eql_sequence=0/0b, accounting=8138920/7.7mb]', 'bytes_wanted': 511424472, 'bytes_limit': 510027366, 'durability': 'PERMANENT'}], 'type': 'search_phase_execution_exception', 'reason': 'all shards failed', 'phase': 'query', 'grouped': True, 'failed_shards': [{'shard': 0, 'index': 'logstash-dns-2022.04.01', 'node': 'IFUMFOfcSXGOsS40NdgGjA', 'reason': {'type': 'circuit_breaking_exception', 'reason': '[parent] Data too large, data for [<reused_arrays>] would be [511424472/487.7mb], which is larger than the limit of [510027366/486.3mb], real usage: [500220696/477mb], new bytes reserved: [11203776/10.6mb], usages [request=11222208/10.7mb, fielddata=24381797/23.2mb, in_flight_requests=1378/1.3kb, model_inference=0/0b, eql_sequence=0/0b, accounting=8138920/7.7mb]', 'bytes_wanted': 511424472, 'bytes_limit': 510027366, 'durability': 'PERMANENT'}}]}, 'status': 429}
@@ -639,7 +644,7 @@ def main():
     fgp=FingerprintGenerator(datefpg, args.ip_es, args.whitelist)
 
     if args.list_all_indices:
-        fgp.GetIndices()
+        fgp.GetIndexes()
         exit(0)
 
 if __name__ == "__main__":
