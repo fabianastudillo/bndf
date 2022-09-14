@@ -9,9 +9,12 @@ from AntiDomainGenerationAlgorithm import AntiDomainGenerationAlgorithm
 import socket
 import logging
 import os
+import sys
 
 def main():
 
+    logging.basicConfig(filename='/var/log/bndf/fingerprint.log', level=logging.INFO, filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     #socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
     #socket.socket = socks.socksocket
 
@@ -24,16 +27,17 @@ def main():
         IP_ES="elasticsearch"
 
     try:
-        print(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing FingerprintGenerator")
+        logging.info(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing FingerprintGenerator")
         fpg = FingerprintGenerator(IP_ES, today, "/root/whitelist.txt")
         fpg.Generate()
-        print(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing RandomForestDetectionModel")
+        fpg.UploadLastToElasticsearch()
+        logging.info(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing RandomForestDetectionModel")
         rfdm = RandomForestDetectionModel()
         rfdm.Predict()
-        print(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing AntiDomainGenerationAlgorithm")
+        logging.info(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Executing AntiDomainGenerationAlgorithm")
         adga = AntiDomainGenerationAlgorithm(all_fingerprints=False, clean_index=False)
         adga.Run()
-        print(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Upload data to elasticsearch")
+        logging.info(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ") + " - Upload data to elasticsearch")
         adga.UploadToElasticsearch()
     except Exception as ex:
         logging.info(str(ex))

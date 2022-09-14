@@ -16,9 +16,9 @@ def main():
     #socket.socket = socks.socksocket
 
     #date_from=date.fromisoformat('2021-08-23T00:00:00.000000Z')
-    date_from=dateutil.parser.isoparse('2022-04-26T20:00:00Z')
+    date_from=dateutil.parser.isoparse('2022-07-27T00:00:00Z')
 
-    date_upto=dateutil.parser.isoparse("2022-04-28T00:00:00Z")
+    date_upto=dateutil.parser.isoparse('2022-07-28T00:00:00Z')
     date_offset = date_from
     logging.basicConfig(filename='/var/log/bndf/fingerprint.log', level=logging.INFO, filemode='a', format='%(name)s - %(levelname)s - %(message)s')
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))

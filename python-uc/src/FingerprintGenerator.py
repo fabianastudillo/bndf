@@ -13,29 +13,46 @@ to process.
 
 from pathlib import Path
 import os.path
+#from types import NoneType
 import requests
 from elasticsearch import Elasticsearch
 from statistics import mean
 import pandas as pd
 import datetime
 import dateutil.parser
+#from datetime import datetime
 import os
 import queries
 import numpy as np
 import re
 from argparse import ArgumentParser
 from os import path
+from os.path import exists
+import warnings
 import logging
 #import pdb; pdb.set_trace()
 
 class FingerprintGenerator:
     """This class generates the fingerprints"""
 
-    def __init__(self, ip_elasticsearch, datestep, fn_whitelist, graylog=True, dga=False):
+    def __init__(self, ip_elasticsearch, datestep=None, fn_whitelist=None, graylog=True, dga=False):
        # logging.basicConfig(filename='/var/log/bndf/fingerprints.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
-
-        self.retries=1000
         self.__ip_elasticsearch=ip_elasticsearch
+        #try:
+        #    self.__elasticsearch = Elasticsearch([{'host':ip_elasticsearch,'port':9200,}])
+        #    print ("- The application is connected to elasticsearch server")
+        #except Exception as ex:
+        #    raise ex
+        self.__es = None
+        self.ConnectToElasticsearch()
+        self.__filename_fingerprints_last="/var/log/bndf/fingerprints-last.csv"
+        if (datestep==None and fn_whitelist==None):
+            self.__onlyupload=True
+            return
+        else:
+            self.__onlyupload=False
+        self.retries=1000
+        
         self.__white_list=[ ]
 
         self.__output_dir = Path('/var/log/bndf/')
@@ -43,6 +60,9 @@ class FingerprintGenerator:
         self.__output_dir.mkdir(parents=True, exist_ok=True)
         self.__graylog=graylog
         self.__dga=dga
+        self.__datestep = None
+        self.__dns_indices = None
+        self.__datestep = None
         
         logging.info("Fingerprint Generator")
         if (fn_whitelist and os.path.exists(fn_whitelist)):
@@ -54,14 +74,22 @@ class FingerprintGenerator:
         else:
             raise Exception("Whitelist file not found with the name " + fn_whitelist)
 
-        try:
-            self.__elasticsearch = Elasticsearch([{'host':ip_elasticsearch,'port':9200,}])
-            print ("- The application is connected to elasticsearch server")
-        except Exception as ex:
-            raise ex
-
         self.SetDatestep(datestep)
 
+    def ConnectToElasticsearch(self):
+        # TODO: Add anomaly file as argument 
+
+        #socks.set_default_proxy(socks.SOCKS5, "localhost", 9000)
+        #socket.socket = socks.socksocket
+
+        try:
+            self.__es = Elasticsearch([{'host':self.__ip_elasticsearch,'port':9200,}])
+            print ("- The application is connected to elasticsearch server")
+            logging.info ("Connected")
+        except Exception as ex:
+            logging.warning ("Error:", ex)
+            raise ex
+            
     def ConvertTime(self,time):
         return(time.strftime("%Y-%m-%dT%H:%M:%SZ"))
     
@@ -83,7 +111,7 @@ class FingerprintGenerator:
         #logging.info("- The loaded indices are ", end = '')
         logging.info("- The loaded indices are ")
         try:
-            for index in self.__elasticsearch.indices.get('logstash-dns-' + self.__datestep.strftime("%Y.%m.%d")):
+            for index in self.__es.indices.get('logstash-dns-' + self.__datestep.strftime("%Y.%m.%d")):
                 #logging.info(index, end = ',')
                 logging.info(index)
                 self.__dns_indices.append(index)
@@ -100,6 +128,9 @@ class FingerprintGenerator:
         print(r)
         
     def getHostByHour(self):
+        if (self.__onlyupload):
+            print("This class is initialized only for upload")
+            return
         indexs=1
         matriz_num_host=[]
         for indice in self.__dns_indices:
@@ -148,13 +179,15 @@ class FingerprintGenerator:
         #     pass
 
         # """
-
+        if (self.__onlyupload):
+            print("This class is initialized only for upload")
+            return
         # # ii = 1
         indexs=1
         # TODO: Verify when we have to clear the cache
         #self.clearCache()
         matriz_num_host=[]
-        for indice in self.__dns_indices:
+        for indice in self.__dns_indices: 
             hosts_number=[]
             #indice_date=indice[13:24]
             #print ("Indice: " + indice)
@@ -191,7 +224,7 @@ class FingerprintGenerator:
             #hosts_number.append(num_host)
             try:
                 with open('/var/log/bndf/num_host-' + self.__datestep.strftime("%Y-%m-%d") + '.csv', 'a') as f:
-                    f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host))
+                    f.write(self.__datestep.strftime("%Y-%m-%d; %H:%M:%S")+';'+str(num_host)+'\n')
             #print("num_host= " + str(num_host))
                 if num_host!=0:
                     #Number of DNS requests per hour for each host
@@ -593,7 +626,7 @@ class FingerprintGenerator:
                     logging.info("Save fingerprint ...")
                     path =  '/var/log/bndf/fingerprints-' + self.__datestep.strftime("%Y-%m-%d") + '.csv'
                     df.to_csv(path, index=None, mode="a", header=not os.path.isfile(path))
-                    path =  '/var/log/bndf/fingerprints-last.csv'
+                    path =  self.__filename_fingerprints_last
                     if os.path.exists(path):
                         os.remove(path)
                     df.to_csv(path, index=None)
@@ -616,6 +649,72 @@ class FingerprintGenerator:
         # while True:
         #     i=0
 
+    def UploadLastToElasticsearch(self):
+        print("UploadLastToElasticsearch Now")
+        today = datetime.datetime.now().replace(minute=0, second=0, microsecond=0)
+        #df=pd.read_csv(self.__filename_domains_abs__)
+
+        #index_fp="last-bots-" + today.strftime("%Y")
+        index_fp="fingerprints-" + today.strftime("%Y-%m-%d")
+        logging.info("Uploading fingerprint: " + index_fp)
+        self.UploadToElasticsearch(self.__filename_fingerprints_last, index_fp)
+        
+    def UploadToElasticsearch(self, filename_fingerprint, index_fp):
+        # self.__filename_domains_abs__
+        if not exists(filename_fingerprint):
+            logging.info("File not exist: " + filename_fingerprint)
+            return
+            
+        #today = datetime.now().replace(minute=0, second=0, microsecond=0)
+
+        #df=pd.read_csv(self.__filename_domains_abs__)
+
+        #index_fp="last-bots-" + today.strftime("%Y")
+        #index_fp="last-bots-" + today.strftime("%Y-%m-%d")
+
+        #TODO: Add this option to class
+        #if (self.__clean_index):
+        #    self.RemoveIndex(index_fp)
+
+        metrics_df=pd.read_csv(filename_fingerprint)
+
+        #for item in metrics_df:
+        #    print(item)
+
+        final_data=[["@timestamp",time,
+                        "ip",ip,"P1",P1,"P2",P2,
+                        "P3",P3,"P4",P4,"P5",P5,
+                        "P6",P6,"P7",P7,"P8",P8,
+                        "P9",P9,"P10",P10,"P11",P11,
+                        "P12",P12,"P13",P13,"P14",P14,
+                        "P15",P15 ] 
+                        for time,ip,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P13,P14,P15
+                        in zip(metrics_df['@timestamp'],metrics_df['ip'],metrics_df['P1'],
+                            metrics_df['P2'],metrics_df['P3'],
+                                metrics_df['P4'],metrics_df['P5'],
+                                metrics_df['P6'],metrics_df['P7'],
+                                metrics_df['P8'],metrics_df['P9'],
+                                metrics_df['P10'],metrics_df['P11'],
+                                metrics_df['P12'],metrics_df['P13'],
+                                metrics_df['P14'],metrics_df['P15'])]
+
+        #logging.info(final_data)
+        #datos_finales_json=[item for item in metrics_df]
+        json_final_data=[self.Convert(item) for item in final_data]
+
+        #logging.info(json_final_data)
+        logging.info("Uploading")
+        ii = 1
+        logging.info(index_fp)
+        for item in json_final_data:
+        #    logging.info(item)
+            res=self.__es.index(index=index_fp,id=ii,body=item)
+            ii=ii+1
+        #logging.info("ii> "+str(ii))
+        ####
+        #init_notebook_mode(connected=True)
+        warnings.filterwarnings('ignore')
+        
 def main():
     parser = ArgumentParser(
             description='Fingerprint generator',
@@ -632,7 +731,11 @@ def main():
     help="IP from the elastic search")
     parser.add_argument("-l", "--list_all_indices", dest="list_all_indices", action='store_true', required=False,
     help="List all indices")
-
+    parser.add_argument("-u", "--upload_fingerprints", dest="upload_fingerprints", action='store_true', required=False,
+    help="Upload the fingerprints")
+    parser.add_argument("-f", "--filename_fingerprint", type=str, dest="filename_fingerprint", required=False,
+    help="Set the filename of the fingerprint to upload to elasticsearch")
+    
     #args = vars(ap.parse_args())
     args = parser.parse_args()
 

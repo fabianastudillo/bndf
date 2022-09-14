@@ -139,6 +139,8 @@ class AntiDomainGenerationAlgorithm:
     def Convert(self,a):
         it = iter(a)
         res_dct = dict(zip(it, it))
+        sites=re.sub('[\' \]\[]', '', res_dct['sites'])
+        res_dct['sites'] = sites.split(',')
         return res_dct
 
     def ConnectToElasticsearch(self):
@@ -311,7 +313,7 @@ class AntiDomainGenerationAlgorithm:
             
         today = datetime.now().replace(minute=0, second=0, microsecond=0)
 
-        df=pd.read_csv(self.__filename_domains_abs__)
+        #df=pd.read_csv(self.__filename_domains_abs__)
 
         #index_fp="last-bots-" + today.strftime("%Y")
         index_fp="last-bots-" + today.strftime("%Y-%m-%d-%H")
@@ -339,6 +341,7 @@ class AntiDomainGenerationAlgorithm:
         #logging.info(json_final_data)
         print("Uploading")
         ii = 1
+        print(index_fp)
         for item in json_final_data:
         #    logging.info(item)
             res=self.__es.index(index=index_fp,id=ii,body=item)
