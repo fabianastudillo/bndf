@@ -27,13 +27,13 @@ function Help(){
   { echo
     echo "Botnet Detection setup script"
     echo
-    echo -e "\t Syntax: easy-setup.sh [-h|--help] [-d|--debug] [-i|--interfaces <eth0 eth1 eth2 ...>] [-n|--non-interactive] [--skip-checks] [--scirius-version <version>] [--elk-version <version>] [--es-datapath <path>]"
-    echo
+    #echo -e "\t Syntax: easy-setup.sh [-h|--help] [-d|--debug] [-i|--interfaces <eth0 eth1 eth2 ...>] [-n|--non-interactive] [--skip-checks] [--scirius-version <version>] [--elk-version <version>] [--es-datapath <path>]"
+    #echo
     echo "OPTIONS"
     echo -e " -h, --help"
     echo -e "       Display this help menu\n"
-    echo -e " -i,--interface <interface>"
-    echo -e "       Defines an interface on which BNDF should listen."
+    #echo -e " -i,--interface <interface>"
+    #echo -e "       Defines an interface on which BNDF should listen."
     echo -e "       This options can be called multiple times. Ex : easy-setup.sh -i eth0 -i eth1"
     echo -e "       The interactive prompt regarding this option will be skipped\n"
     echo -e " -n,--non-interactive"
@@ -55,7 +55,8 @@ function Help(){
 
 # Option strings
 SHORT=hdi:n
-LONG=help,debug,interfaces:,non-interactive,skip-checks,scirius-version:,elk-version:,es-datapath:,print-options
+#LONG=help,debug,interfaces:,non-interactive,skip-checks,scirius-version:,elk-version:,es-datapath:,print-options
+LONG=help,debug,non-interactive,skip-checks,scirius-version:,elk-version:,es-datapath:,print-options
 
 # read the options
 OPTS=$(getopt -o $SHORT -l $LONG --name "$0" -- "$@")
@@ -68,7 +69,7 @@ eval set -- "$OPTS"
 INTERACTIVE="true"
 DEBUG="false"
 SKIP_CHECKS="false"
-INTERFACES=""
+#INTERFACES=""
 ELASTIC_DATAPATH=""
 PRINT_PARAM="false"
 # extract options and their arguments into variables.
@@ -82,10 +83,10 @@ while true ; do
       PRINT_PARAM="true"
       shift
       ;;
-    -i | --interfaces )
-      INTERFACES="${INTERFACES} $2"
-      shift 2
-      ;;
+#    -i | --interfaces )
+#      INTERFACES="${INTERFACES} $2"
+#      shift 2
+#      ;;
     -n | --non-interactive )
       INTERACTIVE="false"
       SKIP_CHECKS="true"
@@ -115,15 +116,15 @@ while true ; do
   esac
 done
 
-if [[ "${INTERACTIVE}" == "false" ]] && [[ "${INTERFACES}" == "" ]]; then
-  echo "ERROR: --non-interactive option must be use with --interface option"
-  exit
-fi
+#if [[ "${INTERACTIVE}" == "false" ]] && [[ "${INTERFACES}" == "" ]]; then
+ # echo "ERROR: --non-interactive option must be use with --interface option"
+ # exit
+#fi
 
 if [[ "${PRINT_PARAM}" == "true" ]]; then
   # Print the variables
   echo "DEBUG = ${DEBUG}"
-  echo "INTERFACES = ${INTERFACES}"
+ # echo "INTERFACES = ${INTERFACES}"
   echo "INTERACTIVE = ${INTERACTIVE}"
   echo "SKIP_CHECKS = ${SKIP_CHECKS}"
   echo "ELK_VERSION = ${ELK_VERSION}"
@@ -313,68 +314,6 @@ echo -e "\n"
 # Setting Stack name #
 ######################
 echo "COMPOSE_PROJECT_NAME=BNDF" > ${BASEDIR}/.env
-
-#############
-# INTERFACE #
-#############
-
-function getInterfaces {
-  echo -e " Network interfaces detected:"
-  intfnum=0
-  for interface in $(ls /sys/class/net); do echo "${intfnum}: ${interface}"; ((intfnum++)) ; done
-  
-  echo -e "Please type in interface or space delimited interfaces below and hit \"Enter\"."
-  echo -e "Choose the interface that is the mirroring interface you want to monitor"
-  echo -e "Example: eth1"
-  echo -e "OR"
-  echo -e "Example: eth1 eth2 eth3"
-  echo -e "\nConfigure threat detection for INTERFACE(S): "
-  
-  if [[ "${INTERFACES}" == "" ]] && [[ "${INTERACTIVE}" == "true" ]]; then
-    read interfaces
-  else
-    echo "${INTERFACES}"
-    interfaces=${INTERFACES}
-  fi
-    
-  echo -e "\nThe supplied network interface(s):  ${interfaces}"
-  echo "";
-  INTERFACE_EXISTS="YES"
-  if [ -z "${interfaces}" ] ; then
-    echo -e "\nNo input provided at all."
-    echo -e "Exiting with ERROR...."
-    INTERFACE_EXISTS="NO"
-    exit 1
-  fi
-  
-  for interface in ${interfaces}
-  do
-    if ! cat /sys/class/net/${interface}/operstate > /dev/null 2>&1 ; then
-        echo -e "\nUSAGE: `basename $0` -> the script requires at least 1 argument - a network interface!"
-        echo -e "#######################################"
-        echo -e "Interface: ${interface} is NOT existing."
-        echo -e "#######################################"
-        echo -e "Please supply a correct/existing network interface or check your spelling.\n"
-        INTERFACE_EXISTS="NO"
-    fi
-    
-  done
-}
-
-
-getInterfaces
-
-while [[ ${INTERFACE_EXISTS} != "YES"  ]]; do
-  getInterfaces
-done
-
-for interface in ${interfaces}
-do
-  INTERFACES_LIST=${INTERFACES_LIST}\ -i\ ${interface}
-done
-
-echo "INTERFACES=${INTERFACES_LIST}" >> ${BASEDIR}/.env
-
 
 ##############
 # DEBUG MODE #
