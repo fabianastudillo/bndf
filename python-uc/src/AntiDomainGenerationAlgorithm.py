@@ -156,28 +156,6 @@ class AntiDomainGenerationAlgorithm:
             logging.warning ("Error:", ex)
             exit(0)
         
-        ## remove elements
-        """
-        lista_blanca=["200.0.29.68",
-                    "45.182.117.5",
-                    "186.3.44.231",
-                    "201.159.222.92",
-                    "181.198.63.86",
-                    "2800:0068:0000:bebe:0000:0000:0000:0004"]
-
-        df=pd.read_csv("/home/vicente/Escritorio/Tesis/FP_anomalies_target.csv")
-        df.head()
-        metrics_df=df
-        for item in lista_blanca:
-            metrics_df=metrics_df.loc[metrics_df['ip']!=item]
-
-        long=len(metrics_df)
-        valores=range(1,long+1)
-        metrics_df['index']=valores
-
-        metrics_df.to_csv(r'FP_anomalies_target1.csv',index=False)
-        """
-
     def LoadAnomalies(self):
         #Load anomalies' file
         self.__metrics_df__ = pd.read_csv(self.fpano_filename)
