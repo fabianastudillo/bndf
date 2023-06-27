@@ -136,3 +136,7 @@ Get logs from a container
   docker logs [container-name]
   
 logs can also be found in bndf/docker/containers-data
+
+Some problems
+=====
+The main problem when logstash not receive data is the kind of port udp/tcp 
