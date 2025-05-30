@@ -12,7 +12,6 @@ Execution example: python AnomalyDetection.py -o -s 70 -3 -2
 import glob, os
 from os.path import exists
 import datetime as dt
-#import pandas as pd # data processing
 import warnings
 from argparse import ArgumentParser
 from datetime import datetime

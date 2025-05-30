@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-version: '3.4'
-
 networks:
   network:
 
@@ -68,8 +66,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-#    environment: 
-#      - TZ=America/Guayaquil
+    environment: 
+      - TZ=America/Guayaquil
     ports: 
       - 5601:5601
     networks:
@@ -104,33 +102,6 @@ services:
       - 10000:10000/udp
     networks:
       network:
-
-# Removing to use graylog input         
-#  suricata:
-##    build:
-##      context: suricata/
-#    container_name: suricata
-#    image: jasonish/suricata:master-amd64
-#    entrypoint: /etc/suricata/new_entrypoint.sh
-#    restart: unless-stopped
-##    depends_on:
-##      scirius:
-##        condition: service_healthy
-#    environment:
-##      - TZ=America/Guayaquil
-#      - SURICATA_OPTIONS=${INTERFACES} -vvv --set sensor-name=suricata
-##      - SURICATA_OPTIONS=${INTERFACES} -vvv --pcap-file-delete --set sensor-name=suricata
-##      - PUID=${UID}
-##      - PGID=${GID}
-#    cap_add:
-#      - NET_ADMIN
-#      - SYS_NICE
-#    network_mode: host
-#    volumes:
-#       - suricata-logs:/var/log/suricata
-#       - suricata-rules:/etc/suricata/rules
-#       - suricata-run:/var/run/suricata/
-#       - ./containers-data/suricata/etc:/etc/suricata
     
   python:
     build:
@@ -141,8 +112,8 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
-#    environment: 
-#      - TZ=America/Guayaquil
+    environment: 
+      - TZ=America/Guayaquil
     networks: 
       network:
 #    healthcheck:
@@ -162,56 +133,3 @@ services:
       - ./python-uc/tunnel.sh:/tunnel.sh
       - ./python-uc/cedia-dnsmirror:/root/cedia-dnsmirror
       - ./python-uc/whitelist.txt:/root/whitelist.txt
-
-  # scirius:
-  #   container_name: scirius
-  #   image: ghcr.io/stamusnetworks/scirius:${SCIRIUS_VERSION:-master}
-  #   restart: unless-stopped
-  #   environment:
-  #     - SECRET_KEY=${SCIRIUS_SECRET_KEY}
-  #     - DEBUG=${SCIRIUS_DEBUG:-False}
-  #     - SCIRIUS_IN_SELKS=True
-  #     - USE_ELASTICSEARCH=True
-  #     - ELASTICSEARCH_ADDRESS=elasticsearch:9200 #Default
-  #     - USE_KIBANA=True
-  #     - KIBANA_URL=http://kibana:5601 #Default
-  #     - KIBANA_PROXY=True #Get kibana proxied by Scirius
-  #     - ALLOWED_HOSTS=* #allow connexions from anywhere
-  #     - KIBANA7_DASHBOARDS_PATH=/opt/selks/kibana7-dashboards #where to find kibana dashboards
-  #     - SURICATA_UNIX_SOCKET=/var/run/suricata/suricata-command.socket #socket to control suricata
-  #     - USE_EVEBOX=True #gives access to evebox in the top menu
-  #     - EVEBOX_ADDRESS=evebox:5636 #Default
-  #     - USE_SURICATA_STATS=True #display more informations on the suricata page
-      
-  #   volumes:
-  #     - scirius-static:/static/
-  #     - scirius-data:/data/
-  #     - ./containers-data/scirius/logs/:/logs/
-  #     - suricata-rules:/rules
-  #     - suricata-run:/var/run/suricata
-      
-  #   networks:
-  #     network:
-          
-  # evebox:
-  #   container_name: evebox
-  #   image: jasonish/evebox:master
-  #   command: ["-e", "http://elasticsearch:9200"]
-  #   restart: unless-stopped
-  #   networks:
-  #     network:
-        
-  # nginx:
-  #   container_name: nginx
-  #   image: nginx
-  #   command: ['${NGINX_EXEC:-nginx}', '-g', 'daemon off;']
-  #   restart: unless-stopped
-  #   volumes:
-  #     - scirius-static:/static/:ro
-  #     - ./containers-data/nginx/conf.d/:/etc/nginx/conf.d/:ro
-  #     - ./containers-data/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./containers-data/nginx/ssl:/etc/nginx/ssl:ro
-  #   ports:
-  #     - 443:443
-  #   networks:
-  #     network:
